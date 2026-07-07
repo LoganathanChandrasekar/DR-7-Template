@@ -1,44 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DR-7 Audio Range Annotation</title>
-  <meta name="description" content="AWS SageMaker Ground Truth custom template for conversational bidirectional audio range annotation">
+  <meta name="description"
+    content="AWS SageMaker Ground Truth custom template for conversational bidirectional audio range annotation">
   <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --brand:        #5f45ff;
-      --brand-mid:    #7c65ff;
-      --brand-light:  #ede9ff;
-      --brand-vlight: #f4f0ff;
-      --bg:           #f5f6fa;
-      --surface:      #ffffff;
-      --border:       #e4e6ed;
-      --border-light: #f0f1f5;
-      --txt1:         #111827;
-      --txt2:         #4b5563;
-      --txt3:         #9ca3af;
-      --success:      #10b981;
-      --danger:       #ef4444;
-      --wave-bg:      #f0edff;
-      --wave-fill:    #7c65ff;
-      --wave-unplay:  #b5a8ff;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    html, body { height: 100%; overflow: hidden; }
+    :root {
+      --brand: #5f45ff;
+      --brand-mid: #7c65ff;
+      --brand-light: #ede9ff;
+      --brand-vlight: #f4f0ff;
+      --bg: #fafbff;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-panel: #c3c4c5;
+      --border-panel-hover: #a7a8a9;
+      --border-light: #f1f5f9;
+      --txt1: #0f172a;
+      --txt2: #475569;
+      --txt3: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --wave-bg: #fafbff;
+      --wave-fill: #5f45ff;
+      --wave-unplay: #c7d2fe;
+      --dr7-col1: 380px;
+      --div1-top-h: 40%;
+      --div5-top-h: 35%;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
 
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 13px;
       background: var(--bg);
       color: var(--txt1);
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
     crowd-form {
@@ -49,216 +69,480 @@
 
     /* ─── HEADER ─────────────────────────────────────────── */
     .dr7-header {
-      height: 46px;
-      background: var(--surface);
+      height: 45px;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 14px;
+      padding: 0 24px;
       flex-shrink: 0;
       z-index: 20;
+      margin-bottom: 4px;
     }
 
-    .hdr-left { display: flex; align-items: center; gap: 10px; }
+    .hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
     .hdr-logo {
-      width: 28px; height: 28px;
-      background: linear-gradient(135deg, var(--brand) 0%, #a78bfa 100%);
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-size: 10px; letter-spacing: -.5px;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--brand) 0%, #818cf8 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: -.5px;
       flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
     }
 
-    .hdr-title { font-size: 13px; font-weight: 600; color: var(--txt1); }
+    .hdr-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--txt1);
+      letter-spacing: -0.2px;
+    }
 
     .hdr-badge {
-      font-size: 10px; color: var(--brand);
+      font-size: 10px;
+      color: var(--brand);
       background: var(--brand-light);
-      padding: 2px 8px; border-radius: 20px; font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
     }
 
-    .hdr-right { display: flex; align-items: center; gap: 7px; }
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .btn-hdr-draft {
-      padding: 5px 13px; font-size: 12px; font-weight: 500;
-      border: 1px solid var(--border); border-radius: 6px;
-      background: var(--surface); color: var(--txt2); cursor: pointer;
-      transition: all .15s;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--txt2);
+      cursor: pointer;
+      transition: all .15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     }
-    .btn-hdr-draft:hover { background: var(--bg); border-color: #c9cdd8; }
+
+    .btn-hdr-draft:hover {
+      background: var(--bg);
+      color: var(--txt1);
+      border-color: #cbd5e1;
+    }
 
     /* ─── MAIN GRID ──────────────────────────────────────── */
     .dr7-main {
       flex: 1;
+      height: calc(100vh - 50px);
       min-height: 0;
       padding: 8px;
     }
 
     .parent {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(5, 1fr);
-      gap: 8px;
+      grid-template-columns: var(--dr7-col1) 1fr;
+      grid-template-rows: 1fr;
+      /* single row layout now */
+      gap: 4px;
+      height: 100%;
+      padding-left: 4px;
+    }
+
+    .div1 {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       height: 100%;
     }
 
-    .div1 { grid-row: span 5 / span 5; }
-    .div5 { grid-column: span 3 / span 3; grid-row: span 2 / span 2; }
-    .div6 { grid-row: span 5 / span 5; grid-column-start: 5; }
-    .div7 {
-      grid-column: span 3 / span 3;
-      grid-row: span 3 / span 3;
-      grid-column-start: 2;
-      grid-row-start: 3;
+    .div1-top {
+      flex: 0 0 var(--div1-top-h);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .div1-bottom {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .div5 {
+      grid-column: 2;
+    }
+
+    /* Utility for icons in part 2 header */
+    .icon-btn-header {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--txt3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn-header:hover {
+      background: var(--bg);
+      color: var(--txt1);
+    }
+
+    .sidebar-v-resizer {
+      position: absolute;
+      top: 0;
+      right: -6px;
+      bottom: 0;
+      width: 8px;
+      cursor: ew-resize;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .sidebar-v-resizer::after {
+      content: '';
+      width: 2px;
+      height: 100%;
+      background: var(--brand);
+    }
+
+    .h-resizer {
+      height: 8px;
+      cursor: ns-resize;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -6px;
+      margin-bottom: -6px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .h-resizer::after {
+      content: '';
+      height: 2px;
+      width: 100%;
+      background: var(--brand);
+    }
+
+    .sidebar-v-resizer:hover,
+    .sidebar-v-resizer.dragging,
+    .h-resizer:hover,
+    .h-resizer.dragging {
+      opacity: 1;
     }
 
     /* ─── PANEL BASE ─────────────────────────────────────── */
     .panel {
       background: var(--surface);
-      border-radius: 10px;
-      border: 1px solid var(--border);
+      border-radius: 8px;
+      border: 1px solid var(--border-panel);
+      transition: border-color .2s;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
 
+    .panel:hover {
+      border-color: var(--border-panel-hover);
+    }
+
     .panel-header {
-      padding: 9px 13px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border-light);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      background: #fafbff;
+      min-height: 40px;
     }
 
     .panel-title {
-      font-size: 10px; font-weight: 700;
-      color: var(--txt2); text-transform: uppercase; letter-spacing: .7px;
-      display: flex; align-items: center; gap: 5px;
+      color: var(--txt2);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .panel-body { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+    }
 
-    /* ─── SCROLLBAR ──────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    /* ─── SCROLLBAR (HIDDEN BUT SCROLLABLE) ─────────────── */
+    * {
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE and Edge */
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+      /* Chrome, Safari and Opera */
+      width: 0px;
+      height: 0px;
+    }
 
     /* ─── SEGMENT PANEL (div1) ───────────────────────────── */
     .seg-count-badge {
-      background: var(--brand-light); color: var(--brand);
-      border-radius: 20px; padding: 1px 8px;
-      font-size: 10px; font-weight: 700;
+      background: var(--brand-light);
+      color: var(--brand);
+      border-radius: 20px;
+      padding: 1px 8px;
+      font-size: 10px;
+      font-weight: 700;
     }
 
-    .segment-list { padding: 6px; display: flex; flex-direction: column; gap: 3px; }
+    .segment-list {
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
 
     .seg-card {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 9px; border-radius: 8px;
-      border: 1px solid transparent; cursor: pointer;
-      transition: all .15s; position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .2s ease;
+      position: relative;
     }
-    .seg-card:hover { background: var(--bg); border-color: var(--border); }
-    .seg-card.active { background: var(--brand-light); border-color: var(--brand); }
-    .seg-card.active .seg-name { color: var(--brand); font-weight: 600; }
 
-    .seg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .seg-card:hover {
+      background: var(--bg);
+      border-color: var(--border);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .seg-card.active {
+      background: #ffffff;
+      border-color: var(--brand);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    }
+
+    .seg-card.active .seg-name {
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    .seg-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
 
     .seg-icon-box {
-      width: 26px; height: 26px; border-radius: 6px;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; color: var(--txt3);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--txt3);
+      transition: all 0.2s ease;
     }
-    .seg-card.active .seg-icon-box { background: var(--brand); border-color: var(--brand); color: #fff; }
 
-    .seg-info { flex: 1; min-width: 0; }
+    .seg-card.active .seg-icon-box {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    }
+
+    .seg-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .seg-name {
-      font-size: 11px; font-weight: 500; color: var(--txt1);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--txt1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+
     .seg-ts {
-      font-size: 10px; color: var(--txt3);
-      font-variant-numeric: tabular-nums; margin-top: 1px;
+      font-size: 11px;
+      color: var(--txt3);
+      font-variant-numeric: tabular-nums;
+      margin-top: 1px;
     }
+
     .seg-saved-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--success); flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
       display: none;
     }
-    .seg-card.saved .seg-saved-dot { display: block; }
+
+    .seg-card.saved .seg-saved-dot {
+      display: block;
+    }
 
     .seg-action-btn {
-      color: var(--txt3); cursor: pointer; padding: 3px;
-      border-radius: 4px; transition: all .15s; opacity: 0;
-      display: flex; align-items: center; border: none; background: none;
+      color: var(--txt3);
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      transition: all .15s;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      border: none;
+      background: none;
     }
-    .seg-card:hover .seg-action-btn { opacity: 1; }
-    .seg-action-btn.view:hover { color: var(--brand); }
-    .seg-action-btn.del:hover { color: var(--danger); }
+
+    .seg-card:hover .seg-action-btn {
+      opacity: 1;
+    }
+
+    .seg-action-btn.view:hover {
+      color: var(--brand);
+    }
+
+    .seg-action-btn.del:hover {
+      color: var(--danger);
+    }
 
     /* Empty state */
     .empty-state {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; padding: 20px; color: var(--txt3); text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px;
+      color: var(--txt3);
+      text-align: center;
       gap: 8px;
     }
-    .empty-state svg { opacity: .35; }
-    .empty-title { font-size: 12px; color: var(--txt3); }
-    .empty-hint { font-size: 10px; color: var(--txt3); opacity: .8; }
+
+    .empty-state svg {
+      opacity: .35;
+    }
+
+    .empty-title {
+      font-size: 12px;
+      color: var(--txt3);
+    }
+
+    .empty-hint {
+      font-size: 11px;
+      color: var(--txt3);
+      opacity: .8;
+    }
 
     /* ─── WAVEFORM PANEL (div5) ──────────────────────────── */
     .waveform-panel {
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .ruler-bar {
-      height: 22px; flex-shrink: 0;
-      background: #f9fafb; border-bottom: 1px solid var(--border-light);
-      position: relative; overflow: hidden;
+      height: 22px;
+      flex-shrink: 0;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+      overflow: hidden;
     }
 
-    #rulerCanvas { display: block; width: 100%; height: 100%; }
+    #rulerCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
     .wave-area {
-      flex: 1; min-height: 0;
-      position: relative; overflow: hidden;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
       background: var(--wave-bg);
-      cursor: crosshair;
+      cursor: context-menu;
     }
 
-    #waveCanvas { display: block; width: 100%; height: 100%; }
+    #waveCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
     .wave-loading {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: var(--wave-bg); gap: 8px;
-      font-size: 11px; color: var(--txt3); z-index: 5;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--wave-bg);
+      gap: 8px;
+      font-size: 11px;
+      color: var(--txt3);
+      z-index: 5;
     }
-    .wave-loading.hidden { display: none; }
+
+    .wave-loading.hidden {
+      display: none;
+    }
 
     .spinner {
-      width: 22px; height: 22px;
-      border: 2px solid var(--border); border-top-color: var(--brand);
-      border-radius: 50%; animation: spin .7s linear infinite;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .wave-hint {
-      position: absolute; right: 8px; bottom: 6px;
-      font-size: 9px; color: var(--txt3);
-      background: rgba(255,255,255,.75);
-      padding: 2px 6px; border-radius: 4px;
-      pointer-events: none; user-select: none;
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
+
 
     /* ─── SLIM PROGRESS / CONTROLS BAR ──────────────────── */
     .audio-controls {
@@ -283,15 +567,17 @@
     .progress-track {
       position: relative;
       width: 100%;
-      height: 3px;
-      background: #ddd6fe;
+      height: 4px;
+      background: #e2e8f0;
       border-radius: 99px;
       overflow: visible;
     }
 
     .progress-played {
       position: absolute;
-      left: 0; top: 0; bottom: 0;
+      left: 0;
+      top: 0;
+      bottom: 0;
       background: var(--brand);
       border-radius: 99px;
       width: 0%;
@@ -303,1171 +589,1771 @@
       position: absolute;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 14px; height: 14px;
+      width: 14px;
+      height: 14px;
       background: #fff;
-      border: 2.5px solid var(--brand);
+      border: 3px solid var(--brand);
       border-radius: 50%;
-      box-shadow: 0 1px 6px rgba(95,69,255,.35);
+      box-shadow: 0 1px 4px rgba(79, 70, 229, 0.4);
       cursor: grab;
       transition: transform .1s, box-shadow .1s;
       z-index: 2;
     }
+
     .progress-handle:active,
-    .progress-handle.dragging { cursor: grabbing; transform: translate(-50%,-50%) scale(1.25); box-shadow: 0 2px 10px rgba(95,69,255,.5); }
+    .progress-handle.dragging {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.2);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.5);
+    }
 
     /* ── Controls row ── */
     .ctrl-row {
-      height: 42px;
+      height: 44px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .ctrl-btn {
-      width: 28px; height: 28px; border-radius: 6px;
-      border: 1px solid var(--border); background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--txt2); transition: all .15s;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--txt2);
+      transition: all .2s ease;
       flex-shrink: 0;
     }
-    .ctrl-btn:hover { background: var(--bg); color: var(--txt1); border-color: #c9cdd8; }
+
+    .ctrl-btn:hover {
+      background: var(--border-light);
+      color: var(--txt1);
+    }
 
     .ctrl-play {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--brand); border: none; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all .15s; flex-shrink: 0;
-      box-shadow: 0 2px 10px rgba(95,69,255,.35);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--brand);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s ease;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
     }
-    .ctrl-play:hover { background: var(--brand-mid); transform: scale(1.06); }
+
+    .ctrl-play:hover {
+      background: var(--brand-mid);
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(79, 70, 229, 0.5);
+    }
 
     .time-disp {
-      font-size: 11px; font-variant-numeric: tabular-nums;
-      color: var(--txt2); background: var(--bg);
-      padding: 3px 8px; border-radius: 4px; min-width: 84px; text-align: center;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--txt2);
+      background: var(--bg);
+      padding: 3px 8px;
+      border-radius: 4px;
+      min-width: 84px;
+      text-align: center;
     }
 
-    .ctrl-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+    .ctrl-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
 
-    .vol-group { display: flex; align-items: center; gap: 5px; }
+    .vol-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     .vol-slider {
-      width: 60px; height: 3px; accent-color: var(--brand); cursor: pointer;
+      width: 60px;
+      height: 3px;
+      accent-color: var(--brand);
+      cursor: pointer;
     }
 
     .speed-sel {
-      font-size: 11px; font-family: inherit;
-      padding: 4px 6px; border: 1px solid var(--border);
-      border-radius: 5px; background: var(--surface); color: var(--txt2);
+      font-size: 12px;
+      font-family: inherit;
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--txt2);
       cursor: pointer;
     }
-    .speed-sel:focus { outline: none; border-color: var(--brand); }
 
-    .ctrl-spacer { flex: 1; }
-
-    /* ─── METADATA PANEL (div6) ──────────────────────────── */
-    .meta-empty {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; color: var(--txt3); gap: 8px; text-align: center;
-      padding: 16px;
+    .speed-sel:focus {
+      outline: none;
+      border-color: var(--brand);
     }
-    .meta-empty svg { opacity: .3; }
-    .meta-empty p { font-size: 11px; }
-    .meta-empty span { font-size: 10px; opacity: .75; }
 
-    .meta-body {
+    .ctrl-spacer {
+      flex: 1;
+    }
+
+    /* ─── WAVEFORM NEXT LEVEL CSS ─────────────────────── */
+    .wf-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      background: white;
+    }
+    .wf-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(249, 250, 251, 0.8);
+      border-bottom: 1px solid #f3f4f6;
+      flex-shrink: 0;
+    }
+    .wf-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.025em;
+    }
+    .wf-zoom-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 2px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .wf-icon-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      border-radius: 4px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .wf-icon-btn:hover {
+      color: #111827;
+      background: #f3f4f6;
+    }
+    .wf-divider-vert {
+      width: 1px;
+      height: 16px;
+      background: #e5e7eb;
+    }
+    .wf-scroll-container {
+      flex: 1;
+      position: relative;
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: #FAFBFF;
+    }
+    .wf-content-width {
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-width: 100%;
+    }
+    .wf-ruler {
+      position: relative;
+      height: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+      background: #FAFBFF;
+    }
+    .wf-wave-area {
+      flex: 1;
+      position: relative;
+      cursor: context-menu;
+    }
+    .wf-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .wf-playhead-overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      width: 2px;
+    }
+    .wf-playhead-handle {
+      width: 12px;
+      height: 16px;
+      background: #3b82f6;
+      cursor: ew-resize;
+      pointer-events: auto;
+      border-top-left-radius: 1px;
+      border-top-right-radius: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+      transform: translateX(-0.5px);
+    }
+    .wf-playhead-handle:hover {
+      background: #2563eb;
+    }
+    .wf-playhead-inner {
       display: none;
-      padding: 11px; flex-direction: column; gap: 9px;
-      overflow-y: auto;
     }
-    .meta-body.active { display: flex; }
+    .wf-playhead-line {
+      flex: 1;
+      width: 1px;
+      background: #93c5fd;
+    }
+    .wf-controls {
+      height: 52px;
+      border-top: 1px solid #e5e7eb;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .wf-play-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #5f45ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+    .wf-play-btn:hover {
+      background: #4a36d6;
+    }
+    .wf-play-btn:active {
+      transform: scale(0.95);
+    }
+    .wf-skip-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .wf-time-disp {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #4b5563;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: -0.025em;
+      background: rgba(249, 250, 251, 0.5);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(243, 244, 246, 0.5);
+      flex-shrink: 0;
+    }
+    .wf-flex-spacer {
+      flex: 1;
+      min-width: 0;
+    }
+    .wf-vol-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .wf-vol-slider {
+      width: 64px;
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      accent-color: #5f45ff;
+    }
+    .wf-speed-group {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .wf-speed-sel {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #4b5563;
+      padding-right: 16px;
+      cursor: pointer;
+      outline: none;
+      border: none;
+      transition: color 0.2s;
+    }
+    .wf-speed-sel:hover {
+      color: #111827;
+    }
+    .wf-speed-icon {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #9ca3af;
+    }
+    .wf-loading-text {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+      font-weight: 500;
+      letter-spacing: 0.025em;
+    }
 
-    .meta-field { display: flex; flex-direction: column; gap: 3px; }
+    /* ─── METADATA SECTION (inside form-body) ──────────────── */
+    .meta-section {
+      border-top: 1px solid var(--border-light);
+      padding-top: 12px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .meta-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--txt3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .meta-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
 
     .meta-label {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .6px; color: var(--txt3);
-      display: flex; align-items: center; gap: 2px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--txt3);
+      display: flex;
+      align-items: center;
+      gap: 2px;
     }
-    .meta-req { color: var(--danger); }
+
+    .meta-req {
+      color: var(--danger);
+    }
 
     .meta-select {
-      width: 100%; padding: 5px 22px 5px 7px;
-      border: 1px solid var(--border); border-radius: 6px;
-      font-family: inherit; font-size: 11px; color: var(--txt1);
+      width: 100%;
+      height: 30px;
+      padding: 0 22px 0 7px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 11px;
+      color: var(--txt1);
       background: var(--surface) url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 7px center;
       background-size: 10px;
-      cursor: pointer; appearance: none; transition: border-color .15s;
+      cursor: pointer;
+      appearance: none;
+      transition: border-color .15s;
     }
-    .meta-select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 2px rgba(95,69,255,.1); }
-    .meta-select.error { border-color: var(--danger); }
+
+    .meta-select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(95, 69, 255, .1);
+    }
+
+    .meta-select.error {
+      border-color: var(--danger);
+    }
 
     /* ─── ANNOTATION FORM (div7) ─────────────────────────── */
     .form-empty {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; color: var(--txt3); gap: 8px; text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--txt3);
+      gap: 8px;
+      text-align: center;
     }
-    .form-empty svg { opacity: .25; }
-    .form-empty p { font-size: 12px; }
-    .form-empty span { font-size: 10px; opacity: .7; }
+
+    .form-empty svg {
+      opacity: .25;
+    }
+
+    .form-empty p {
+      font-size: 12px;
+    }
+
+    .form-empty span {
+      font-size: 11px;
+      opacity: .7;
+    }
 
     .form-content {
-      display: none; flex-direction: column; height: 100%;
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
     }
 
     .form-hdr-bar {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      padding: 7px 13px;
-      background: #fafbff; border-bottom: 1px solid var(--border-light);
-      font-size: 10px; flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 11px;
+      flex-shrink: 0;
     }
-    .form-hdr-item { display: flex; align-items: center; gap: 4px; color: var(--txt2); }
-    .form-hdr-item strong { color: var(--txt1); font-weight: 600; font-size: 11px; }
+
+    .form-hdr-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 10px;
+      color: var(--txt2);
+    }
+
+    .form-hdr-item strong {
+      color: var(--txt1);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
     .lang-pair-badge {
-      background: var(--brand-light); color: var(--brand);
-      border-radius: 4px; padding: 2px 7px; font-weight: 700; font-size: 9px;
+      background: var(--brand-light);
+      color: var(--brand);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-weight: 700;
+      font-size: 10px;
     }
+
     .form-hdr-time {
-      margin-left: auto; font-size: 10px; color: var(--txt3);
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--txt3);
       font-variant-numeric: tabular-nums;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 5px;
+      padding: 2px 8px;
     }
 
     .form-body {
-      flex: 1; overflow-y: auto; padding: 12px;
-      display: flex; flex-direction: column; gap: 11px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
       min-height: 0;
     }
 
-    .form-field { display: flex; flex-direction: column; gap: 4px; }
-
-    .field-lbl {
-      font-size: 10px; font-weight: 700; color: var(--txt2);
-      text-transform: uppercase; letter-spacing: .4px;
-      display: flex; align-items: center; justify-content: space-between;
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .lbl-right { display: flex; align-items: center; gap: 5px; }
+    .field-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--txt2);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .lbl-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
     .lang-badge {
-      font-size: 9px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 3px; padding: 1px 5px; color: var(--txt3);
-      letter-spacing: 0; text-transform: none; font-weight: 500;
+      font-size: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 3px 8px;
+      color: var(--txt3);
+      letter-spacing: 0;
+      text-transform: none;
+      font-weight: 500;
     }
 
     .field-textarea {
-      width: 100%; min-height: 70px; max-height: 130px;
-      padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
-      font-family: inherit; font-size: 12px; color: var(--txt1);
-      resize: vertical; line-height: 1.55;
-      transition: border-color .15s, box-shadow .15s;
-      background: var(--surface);
+      width: 100%;
+      min-height: 70px;
+      max-height: 140px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--txt1);
+      resize: vertical;
+      line-height: 1.6;
+      transition: all .2s ease;
+      background: #f8fafc;
     }
+
     .field-textarea:focus {
-      outline: none; border-color: var(--brand);
-      box-shadow: 0 0 0 2px rgba(95,69,255,.1);
+      outline: none;
+      border-color: var(--brand);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
-    .field-textarea.error { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(239,68,68,.1); }
 
-    .char-counter { font-size: 9px; color: var(--txt3); text-align: right; }
-    .char-counter.warn { color: #f59e0b; }
-    .char-counter.over { color: var(--danger); }
+    .field-textarea.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, .15);
+    }
 
-    .radio-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .char-counter {
+      font-size: 10px;
+      color: var(--txt3);
+      text-align: right;
+    }
+
+    .char-counter.warn {
+      color: #f59e0b;
+    }
+
+    .char-counter.over {
+      color: var(--danger);
+    }
+
+    .radio-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
 
     .radio-block {
-      padding: 10px; border: 1px solid var(--border); border-radius: 7px;
-      display: flex; flex-direction: column; gap: 7px; background: var(--surface);
-      transition: border-color .15s;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #ffffff;
+      transition: all .2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
     }
-    .radio-block.error { border-color: var(--danger); }
-    .radio-block-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--txt2); }
-    .radio-opts { display: flex; gap: 14px; }
+
+    .radio-block:hover {
+      border-color: #cbd5e1;
+    }
+
+    .radio-block.error {
+      border-color: var(--danger);
+    }
+
+    .radio-block-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--txt2);
+    }
+
+    .radio-opts {
+      display: flex;
+      gap: 16px;
+    }
 
     .radio-opt {
-      display: flex; align-items: center; gap: 5px;
-      cursor: pointer; font-size: 12px; color: var(--txt1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--txt1);
     }
-    .radio-opt input[type="radio"] { accent-color: var(--brand); width: 14px; height: 14px; cursor: pointer; }
+
+    .radio-opt input[type="radio"] {
+      accent-color: var(--brand);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
 
     .form-footer {
-      display: flex; gap: 7px; padding: 10px 12px;
-      border-top: 1px solid var(--border-light); flex-shrink: 0;
-      background: #fafbff;
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border-light);
+      flex-shrink: 0;
+      background: #ffffff;
     }
 
     .btn-save-seg {
-      flex: 1; padding: 7px 14px; font-size: 12px; font-weight: 600;
-      background: var(--brand); color: #fff; border: none; border-radius: 7px;
-      cursor: pointer; transition: all .15s;
+      flex: 1;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s ease;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
     }
-    .btn-save-seg:hover { background: var(--brand-mid); }
-    .btn-save-seg:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-save-seg:hover {
+      background: var(--brand-mid);
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-save-seg:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
 
     .btn-draft-seg {
-      padding: 7px 12px; font-size: 12px; font-weight: 500;
-      background: var(--surface); color: var(--txt2);
-      border: 1px solid var(--border); border-radius: 7px;
-      cursor: pointer; transition: all .15s;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      color: var(--txt2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .15s;
     }
-    .btn-draft-seg:hover { background: var(--bg); }
+
+    .btn-draft-seg:hover {
+      background: var(--bg);
+    }
 
     /* ─── TOAST ──────────────────────────────────────────── */
     .dr7-toast {
-      position: fixed; top: 54px; right: 14px;
-      padding: 9px 14px; border-radius: 7px;
-      font-size: 12px; font-weight: 500; color: #fff;
-      z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,.15);
-      opacity: 0; transform: translateY(-6px);
-      transition: all .2s; pointer-events: none;
+      position: fixed;
+      top: 54px;
+      right: 14px;
+      padding: 9px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #fff;
+      z-index: 9999;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: all .2s;
+      pointer-events: none;
     }
-    .dr7-toast.show { opacity: 1; transform: translateY(0); }
-    .dr7-toast.error { background: var(--danger); }
-    .dr7-toast.success { background: var(--success); }
 
-    .req-star { color: var(--danger); margin-left: 2px; }
+    .dr7-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .dr7-toast.error {
+      background: var(--danger);
+    }
+
+    .dr7-toast.success {
+      background: var(--success);
+    }
+
+    .req-star {
+      color: var(--danger);
+      margin-left: 2px;
+    }
   </style>
 </head>
+
 <body>
 
-<crowd-form>
-  <!-- ── Hidden output fields (these carry the data to AWS) ── -->
-  <input type="hidden" name="annotations"       id="annotations_output"
-         value="{{ task.input.annotations | default: '[]' | escape }}">
-  <input type="hidden" name="progress_status"   id="progress_status"    value="in-progress">
-  <input type="hidden" name="audio_url"         id="audioUrl_output"
-         value="{{ task.input.audioUrl | default: '' }}">
-  <!-- Metadata mirror fields (for AWS validation pass-through) -->
-  <input type="hidden" name="source_locale"     id="out_src_locale">
-  <input type="hidden" name="target_locale"     id="out_tgt_locale">
-  <input type="hidden" name="speaker_label"     id="out_spk_label">
-  <input type="hidden" name="domain"            id="out_domain">
-  <input type="hidden" name="modality"          id="out_modality">
-  <input type="hidden" name="direction"         id="out_direction">
+  <crowd-form>
+    <!-- ── Hidden output fields (these carry the data to AWS) ── -->
+    <input type="hidden" name="annotations" id="annotations_output"
+      value="{{ task.input.annotations | default: '[]' | escape }}">
+    <input type="hidden" name="progress_status" id="progress_status" value="in-progress">
+    <input type="hidden" name="audio_url" id="audioUrl_output" value="{{ task.input.audioUrl | default: '' }}">
+    <!-- Metadata mirror fields (for AWS validation pass-through) -->
+    <input type="hidden" name="source_locale" id="out_src_locale">
+    <input type="hidden" name="target_locale" id="out_tgt_locale">
+    <input type="hidden" name="speaker_label" id="out_spk_label">
+    <input type="hidden" name="domain" id="out_domain">
+    <input type="hidden" name="modality" id="out_modality">
+    <input type="hidden" name="direction" id="out_direction">
 
-  <!-- ═══ HEADER ═══════════════════════════════════════════ -->
-  <header class="dr7-header">
-    <div class="hdr-left">
-      <div class="hdr-logo">DR7</div>
-      <span class="hdr-title">Audio Range Annotation</span>
-      <span class="hdr-badge">Conversational · Bidirectional</span>
-    </div>
-    <div class="hdr-right">
-      <button type="button" class="btn-hdr-draft" onclick="DR7.saveDraft()">Save Draft</button>
-      <crowd-button form-action="submit" variant="primary" id="submitBtn">Submit</crowd-button>
-    </div>
-  </header>
-
-  <!-- ═══ MAIN GRID ═════════════════════════════════════════ -->
-  <div class="dr7-main">
-    <div class="parent">
-
-      <!-- ───────────── DIV1 : SEGMENTS PANEL ───────────── -->
-      <div class="div1 panel">
-        <div class="panel-header">
-          <span class="panel-title">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/>
-              <circle cx="3" cy="6"  r="1.2" fill="currentColor"/>
-              <circle cx="3" cy="12" r="1.2" fill="currentColor"/>
-              <circle cx="3" cy="18" r="1.2" fill="currentColor"/>
-            </svg>
-            Segments
-          </span>
-          <span class="seg-count-badge" id="segCountBadge">0</span>
-        </div>
-        <div class="panel-body">
-          <div id="segmentList" class="segment-list"></div>
-          <div id="segEmptyState" class="empty-state">
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-              <path d="M22 12h-6l-2 3H10l-2-3H2"/>
-              <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
-            </svg>
-            <p class="empty-title">No classifications or objects</p>
-            <p class="empty-hint">Drag on the waveform to create a segment</p>
-          </div>
-        </div>
+    <!-- ═══ HEADER ═══════════════════════════════════════════ -->
+    <header class="dr7-header">
+      <div class="hdr-left">
+        <crowd-button form-action="submit" variant="primary" id="submitBtn">Submit</crowd-button>
       </div>
+    </header>
 
-      <!-- ───────────── DIV5 : WAVEFORM + CONTROLS ────────── -->
-      <div class="div5 panel waveform-panel">
-        <!-- Time ruler -->
-        <div class="ruler-bar">
-          <canvas id="rulerCanvas"></canvas>
-        </div>
+    <!-- ═══ MAIN GRID ═════════════════════════════════════════ -->
+    <div class="dr7-main">
+      <div class="parent">
 
-        <!-- Waveform canvas -->
-        <div class="wave-area" id="waveArea">
-          <canvas id="waveCanvas"></canvas>
-          <div class="wave-hint">Drag to create a segment range</div>
-          <div class="wave-loading" id="waveLoading">
-            <div class="spinner"></div>
-            <span>Loading audio…</span>
-          </div>
-        </div>
+        <!-- ───────────── DIV1 : LEFT SIDEBAR ───────────── -->
+        <div class="div1">
 
-        <!-- Audio controls: slim progress bar + ctrl row -->
-        <div class="audio-controls">
-
-          <!-- Slim draggable progress bar -->
-          <div class="progress-track-wrap" id="progressWrap">
-            <div class="progress-track">
-              <div class="progress-played" id="progressPlayed"></div>
-              <div class="progress-handle" id="progressHandle"></div>
+          <!-- TOP PANEL : SEGMENTS -->
+          <div class="panel div1-top">
+            <div class="panel-header">
+              <span class="panel-title">
+                Segments
+              </span>
+              <span class="seg-count-badge" id="segCountBadge">0</span>
+            </div>
+            <div class="panel-body">
+              <div id="segmentList" class="segment-list"></div>
+              <div id="segEmptyState" class="empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M22 12h-6l-2 3H10l-2-3H2" />
+                  <path
+                    d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
+                </svg>
+                <p class="empty-title">No segments yet</p>
+                <p class="empty-hint">Drag on the waveform to mark a range</p>
+              </div>
             </div>
           </div>
 
-          <!-- Playback controls row -->
-          <div class="ctrl-row">
-            <!-- Skip back 10s -->
-            <button type="button" class="ctrl-btn" title="Back 10s" onclick="DR7.audio.skip(-10)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-              </svg>
-            </button>
+          <!-- HORIZONTAL RESIZER -->
+          <div class="h-resizer" id="div1HResizer"></div>
 
-            <!-- Play / Pause -->
-            <button type="button" class="ctrl-play" id="playPauseBtn" onclick="DR7.audio.togglePlay()">
-              <svg id="icPlay"  width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <svg id="icPause" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:none">
-                <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
-              </svg>
-            </button>
+          <!-- BOTTOM PANEL : SEGMENT DETAILS / LABELS -->
+          <div class="panel div1-bottom">
+            <div class="panel-header">
+              <span class="panel-title">
+                Segment Details
+              </span>
+              <div style="display:flex; gap:4px; position:relative;">
+                <button type="button" class="icon-btn-header" title="Toggle Visibility" id="btnEyeToggle"
+                  style="display:none;" onclick="alert('Visibility toggled for current segment')">
+                  <span class="material-icons-outlined" style="font-size:16px;">visibility</span>
+                </button>
+              </div>
+            </div>
+            <div class="panel-body" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+              <!-- Empty state -->
+              <div id="formEmpty" class="form-empty" style="display:flex">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M22 12h-6l-2 3H10l-2-3H2" />
+                  <path
+                    d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
+                </svg>
+                <p>No segment selected</p>
+                <span>Click a segment in the left panel to annotate</span>
+              </div>
 
-            <!-- Skip forward 10s -->
-            <button type="button" class="ctrl-btn" title="Forward 10s" onclick="DR7.audio.skip(10)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-.49-3.5"/>
-              </svg>
-            </button>
+              <!-- Form content -->
+              <div id="formContent" class="form-content">
 
-            <span class="time-disp" id="timeDisp">0:00 / 0:00</span>
-            <div class="ctrl-sep"></div>
+                <!-- Read-only header bar -->
+                <div class="form-hdr-bar">
+                  <div class="form-hdr-item">Seg <strong id="fhId">#0001</strong></div>
+                  <div style="display:none"><strong id="fhSeg">001</strong></div>
+                  <div class="form-hdr-item">Turn <strong id="fhTurn">01</strong></div>
+                  <div class="form-hdr-item"><span class="lang-pair-badge" id="fhPair">EN-US → FR-FR</span></div>
+                  <span class="form-hdr-time" id="fhTime">0:00 – 0:00</span>
+                </div>
 
-            <!-- Volume -->
-            <div class="vol-group">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-              </svg>
-              <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="1"
-                     name="_vol_ui" aria-label="Volume">
+                <!-- Fields -->
+                <div class="form-body">
+
+                  <!-- 1. Source Verbatim -->
+                  <div class="form-field">
+                    <div class="field-lbl">
+                      1. Source Language Verbatim Transcription<span class="req-star">*</span>
+                      <div class="lbl-right"><span class="lang-badge" id="srcBadge">EN-US</span></div>
+                    </div>
+                    <textarea class="field-textarea" id="f_src" name="seg_source_text" maxlength="1000"
+                      placeholder="Type the exact spoken words in source language…"
+                      oninput="DR7.form.onSrcInput(this)"></textarea>
+                    <div class="char-counter" id="srcCounter">0 / 1000</div>
+                  </div>
+
+                  <!-- 2. Target Translation -->
+                  <div class="form-field">
+                    <div class="field-lbl">
+                      2. Target Language Human Reference Translation<span class="req-star">*</span>
+                      <div class="lbl-right"><span class="lang-badge" id="tgtBadge">FR-FR</span></div>
+                    </div>
+                    <textarea class="field-textarea" id="f_tgt" name="seg_target_text" maxlength="1000"
+                      placeholder="Type the professional reference translation…"
+                      oninput="DR7.form.onTgtInput(this)"></textarea>
+                    <div class="char-counter" id="tgtCounter">0 / 1000</div>
+                  </div>
+
+                  <!-- Radio row -->
+                  <div class="radio-row">
+                    <div class="radio-block" id="rb_cs">
+                      <div class="radio-block-lbl">5. Code-Switch Present<span class="req-star">*</span></div>
+                      <div class="radio-opts">
+                        <label class="radio-opt">
+                          <input type="radio" name="seg_code_switch" id="r_cs_yes" value="yes"
+                            onchange="DR7.form.onRadio()"> Yes
+                        </label>
+                        <label class="radio-opt">
+                          <input type="radio" name="seg_code_switch" id="r_cs_no" value="no"
+                            onchange="DR7.form.onRadio()"> No
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="radio-block" id="rb_cd">
+                      <div class="radio-block-lbl">6. Context Dependency<span class="req-star">*</span></div>
+                      <div class="radio-opts">
+                        <label class="radio-opt">
+                          <input type="radio" name="seg_context_dependency" id="r_cd_yes" value="yes"
+                            onchange="DR7.form.onRadio()"> Yes
+                        </label>
+                        <label class="radio-opt">
+                          <input type="radio" name="seg_context_dependency" id="r_cd_no" value="no"
+                            onchange="DR7.form.onRadio()"> No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ── Metadata Section ── -->
+                  <div class="meta-section">
+                    <div class="meta-section-title">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      Metadata
+                    </div>
+                    <div class="meta-grid">
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_src">Source Locale <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_src" name="meta_source_locale"
+                          onchange="DR7.meta.onChange()">
+                          <option value="en-US">English (en-US)</option>
+                          <option value="en-GB">English (en-GB)</option>
+                          <option value="fr-FR">French (fr-FR)</option>
+                          <option value="es-ES">Spanish (es-ES)</option>
+                          <option value="de-DE">German (de-DE)</option>
+                          <option value="zh-CN">Chinese (zh-CN)</option>
+                          <option value="ja-JP">Japanese (ja-JP)</option>
+                          <option value="ar-SA">Arabic (ar-SA)</option>
+                          <option value="pt-BR">Portuguese (pt-BR)</option>
+                          <option value="hi-IN">Hindi (hi-IN)</option>
+                          <option value="ko-KR">Korean (ko-KR)</option>
+                        </select>
+                      </div>
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_tgt">Target Locale <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_tgt" name="meta_target_locale"
+                          onchange="DR7.meta.onChange()">
+                          <option value="fr-FR">French (fr-FR)</option>
+                          <option value="en-US">English (en-US)</option>
+                          <option value="es-ES">Spanish (es-ES)</option>
+                          <option value="de-DE">German (de-DE)</option>
+                          <option value="zh-CN">Chinese (zh-CN)</option>
+                          <option value="ja-JP">Japanese (ja-JP)</option>
+                          <option value="ar-SA">Arabic (ar-SA)</option>
+                          <option value="pt-BR">Portuguese (pt-BR)</option>
+                          <option value="hi-IN">Hindi (hi-IN)</option>
+                          <option value="ko-KR">Korean (ko-KR)</option>
+                        </select>
+                      </div>
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_spk">Speaker Label <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_spk" name="meta_speaker_label"
+                          onchange="DR7.meta.onChange()">
+                          <option value="Agent">Agent</option>
+                          <option value="Customer">Customer</option>
+                          <option value="Interviewer">Interviewer</option>
+                          <option value="Interviewee">Interviewee</option>
+                          <option value="Unknown">Unknown</option>
+                        </select>
+                      </div>
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_dom">Domain <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_dom" name="meta_domain" onchange="DR7.meta.onChange()">
+                          <option value="General">General</option>
+                          <option value="E-commerce">E-commerce</option>
+                          <option value="Healthcare">Healthcare</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Legal">Legal</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Education">Education</option>
+                          <option value="Travel">Travel</option>
+                          <option value="Insurance">Insurance</option>
+                        </select>
+                      </div>
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_mod">Modality <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_mod" name="meta_modality" onchange="DR7.meta.onChange()">
+                          <option value="Direct AST">Direct AST</option>
+                          <option value="Conversational Bidirectional">Conversational Bidirectional</option>
+                          <option value="Monologue">Monologue</option>
+                          <option value="Interview">Interview</option>
+                        </select>
+                      </div>
+                      <div class="meta-field">
+                        <label class="meta-label" for="meta_dir">Direction <span class="meta-req">*</span></label>
+                        <select class="meta-select" id="meta_dir" name="meta_direction" onchange="DR7.meta.onChange()">
+                          <option value="Source to Target">Source → Target</option>
+                          <option value="Target to Source">Target → Source</option>
+                          <option value="Bidirectional">Bidirectional</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div><!-- /meta-section -->
+
+                </div>
+              </div><!-- /formContent -->
+            </div>
+          </div>
+
+          <!-- Resize handle -->
+          <div class="sidebar-v-resizer" id="sidebarVResizer"></div>
+        </div>
+
+        <!-- ───────────── DIV5 : WAVEFORM + CONTROLS ────────── -->
+        <div class="div5"
+          style="display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; height: 100%;">
+          <div class="panel waveform-panel wf-panel" style="flex: 0 0 var(--div5-top-h);">
+            <!-- Top Toolbar -->
+            <div class="wf-toolbar">
+              <div class="wf-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #9ca3af;">
+                  <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                  <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                </svg>
+                Audio Track
+              </div>
+              <div class="wf-zoom-group">
+                <button type="button" class="wf-icon-btn" title="Zoom Out" onclick="DR7.audio.zoom(-0.5)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                  </svg>
+                </button>
+                <div class="wf-divider-vert" style="height: 14px;"></div>
+                <button type="button" class="wf-icon-btn" title="Zoom In" onclick="DR7.audio.zoom(0.5)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <!-- Speed -->
-            <select class="speed-sel" id="speedSel" name="_speed_ui"
-                    onchange="DR7.audio.setSpeed(this.value)" aria-label="Playback speed">
-              <option value="0.5">0.5×</option>
-              <option value="0.75">0.75×</option>
-              <option value="1" selected>1×</option>
-              <option value="1.25">1.25×</option>
-              <option value="1.5">1.5×</option>
-              <option value="2">2×</option>
-            </select>
+            <!-- Scrollable Timeline Container -->
+            <div id="timelineScrollContainer" class="wf-scroll-container">
+              <div id="timelineContentWidth" class="wf-content-width">
+                <!-- Time ruler -->
+                <div class="wf-ruler">
+                  <canvas id="rulerCanvas" class="wf-canvas"></canvas>
+                </div>
+    
+                <!-- Waveform canvas -->
+                <div class="wf-wave-area" id="waveArea">
+                  <canvas id="waveCanvas" class="wf-canvas"></canvas>
+                  <div class="wave-loading" id="waveLoading">
+                    <div class="spinner"></div>
+                    <span class="wf-loading-text">Loading audio…</span>
+                  </div>
+                </div>
 
-            <div class="ctrl-spacer"></div>
+                <!-- HTML Playhead -->
+                <div id="playheadOverlay" class="wf-playhead-overlay" style="left: 0%;">
+                  <div id="playheadHandle" class="wf-playhead-handle">
+                    <div class="wf-playhead-inner"></div>
+                  </div>
+                  <div class="wf-playhead-line"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audio controls -->
+            <div class="wf-controls">
+               <button type="button" class="wf-play-btn" id="playPauseBtn" onclick="DR7.audio.togglePlay()">
+                  <svg id="icPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <svg id="icPause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+               </button>
+               
+               <div class="wf-skip-group">
+                 <button type="button" class="wf-icon-btn" title="Back 10s" onclick="DR7.audio.skip(-10)">
+                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                     <polyline points="1 4 1 10 7 10" />
+                     <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
+                   </svg>
+                 </button>
+                 <button type="button" class="wf-icon-btn" title="Forward 10s" onclick="DR7.audio.skip(10)">
+                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                     <polyline points="23 4 23 10 17 10" />
+                     <path d="M20.49 15a9 9 0 1 1-.49-3.5" />
+                   </svg>
+                 </button>
+               </div>
+
+               <div class="wf-time-disp" id="timeDisp">0:00 / 0:00</div>
+               
+               <div class="wf-flex-spacer"></div>
+
+               <!-- Volume -->
+               <div class="wf-vol-group">
+                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                   <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                   <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                 </svg>
+                 <input type="range" class="wf-vol-slider" id="volSlider" name="_vol_ui" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+               </div>
+
+               <div class="wf-divider-vert"></div>
+
+               <!-- Speed -->
+               <div class="wf-speed-group">
+                 <select class="wf-speed-sel" id="speedSel" name="_speed_ui" onchange="DR7.audio.setSpeed(this.value)" aria-label="Playback speed">
+                   <option value="0.5">0.5×</option>
+                   <option value="0.75">0.75×</option>
+                   <option value="1" selected>1×</option>
+                   <option value="1.25">1.25×</option>
+                   <option value="1.5">1.5×</option>
+                   <option value="2">2×</option>
+                 </select>
+                 <svg class="wf-speed-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+               </div>
+            </div>
           </div>
-        </div><!-- /audio-controls -->
-      </div><!-- /div5 -->
+          <!-- HTML Playhead -->
+          <!-- HORIZONTAL RESIZER -->
+          <div class="h-resizer" id="div5HResizer"></div>
 
-      <!-- ───────────── DIV6 : METADATA PANEL ───────────── -->
-      <div class="div6 panel">
-        <div class="panel-header">
-          <span class="panel-title">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+          <!-- Expected new section with empty state -->
+          <div class="panel"
+            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--txt3);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M22 12h-6l-2 3H10l-2-3H2" />
+                  <path
+                    d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
             </svg>
-            Metadata
-          </span>
-        </div>
-
-        <!-- Empty state -->
-        <div id="metaEmpty" class="meta-empty">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <p>No classifications or objects</p>
-          <span>Create a segment to fill metadata</span>
-        </div>
-
-        <!-- Metadata fields (shown once first segment created) -->
-        <div class="meta-body" id="metaBody">
-
-          <div class="meta-field">
-            <label class="meta-label" for="meta_src">Source Locale <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_src" name="meta_source_locale" onchange="DR7.meta.onChange()">
-              <option value="en-US">English (en-US)</option>
-              <option value="en-GB">English (en-GB)</option>
-              <option value="fr-FR">French (fr-FR)</option>
-              <option value="es-ES">Spanish (es-ES)</option>
-              <option value="de-DE">German (de-DE)</option>
-              <option value="zh-CN">Chinese (zh-CN)</option>
-              <option value="ja-JP">Japanese (ja-JP)</option>
-              <option value="ar-SA">Arabic (ar-SA)</option>
-              <option value="pt-BR">Portuguese (pt-BR)</option>
-              <option value="hi-IN">Hindi (hi-IN)</option>
-              <option value="ko-KR">Korean (ko-KR)</option>
-            </select>
+            <p style="font-size: 12px;">New Section Area</p>
+            <span style="font-size: 11px; opacity: 0.7;">Empty for now</span>
           </div>
+        </div><!-- /div5 wrapper -->
 
-          <div class="meta-field">
-            <label class="meta-label" for="meta_tgt">Target Locale <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_tgt" name="meta_target_locale" onchange="DR7.meta.onChange()">
-              <option value="fr-FR">French (fr-FR)</option>
-              <option value="en-US">English (en-US)</option>
-              <option value="es-ES">Spanish (es-ES)</option>
-              <option value="de-DE">German (de-DE)</option>
-              <option value="zh-CN">Chinese (zh-CN)</option>
-              <option value="ja-JP">Japanese (ja-JP)</option>
-              <option value="ar-SA">Arabic (ar-SA)</option>
-              <option value="pt-BR">Portuguese (pt-BR)</option>
-              <option value="hi-IN">Hindi (hi-IN)</option>
-              <option value="ko-KR">Korean (ko-KR)</option>
-            </select>
-          </div>
+        <!-- div7 has been moved to div1-bottom -->
 
-          <div class="meta-field">
-            <label class="meta-label" for="meta_spk">Speaker Label <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_spk" name="meta_speaker_label" onchange="DR7.meta.onChange()">
-              <option value="Agent">Agent</option>
-              <option value="Customer">Customer</option>
-              <option value="Interviewer">Interviewer</option>
-              <option value="Interviewee">Interviewee</option>
-              <option value="Unknown">Unknown</option>
-            </select>
-          </div>
+      </div><!-- /parent -->
+    </div><!-- /dr7-main -->
+  </crowd-form>
 
-          <div class="meta-field">
-            <label class="meta-label" for="meta_dom">Domain <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_dom" name="meta_domain" onchange="DR7.meta.onChange()">
-              <option value="General">General</option>
-              <option value="E-commerce">E-commerce</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Finance">Finance</option>
-              <option value="Legal">Legal</option>
-              <option value="Technology">Technology</option>
-              <option value="Education">Education</option>
-              <option value="Travel">Travel</option>
-              <option value="Insurance">Insurance</option>
-            </select>
-          </div>
+  <!-- Hidden audio element -->
+  <audio id="audioPlayer" preload="auto"></audio>
 
-          <div class="meta-field">
-            <label class="meta-label" for="meta_mod">Modality <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_mod" name="meta_modality" onchange="DR7.meta.onChange()">
-              <option value="Direct AST">Direct AST</option>
-              <option value="Conversational Bidirectional">Conversational Bidirectional</option>
-              <option value="Monologue">Monologue</option>
-              <option value="Interview">Interview</option>
-            </select>
-          </div>
+  <!-- Toast -->
+  <div class="dr7-toast" id="dr7Toast"></div>
 
-          <div class="meta-field">
-            <label class="meta-label" for="meta_dir">Direction <span class="meta-req">*</span></label>
-            <select class="meta-select" id="meta_dir" name="meta_direction" onchange="DR7.meta.onChange()">
-              <option value="Source to Target">Source → Target</option>
-              <option value="Target to Source">Target → Source</option>
-              <option value="Bidirectional">Bidirectional</option>
-            </select>
-          </div>
+  <!-- ═════════════════════════════════════ SCRIPT ════════════════════════════════════ -->
+  <script>
+    (function () {
+      'use strict';
 
-        </div><!-- /meta-body -->
-      </div><!-- /div6 -->
+      // ── CONFIG ──────────────────────────────────────────────
+      // LOCAL_DEV_AUDIO: used when the Liquid tag is NOT substituted (local file:// testing).
+      // Set to the WAV filename relative to the HTML file, or a full URL.
+      const LOCAL_DEV_AUDIO = 'G2936_S0001_comfortable_slow_male.wav';
 
-      <!-- ───────────── DIV7 : ANNOTATION FORM ─────────── -->
-      <div class="div7 panel">
+      const _liquidAudioUrl = '{{ task.input.audioUrl | default: "" }}';
+      // If Liquid was NOT processed (raw '{{...}}' string), fall back to local dev audio.
+      const _isLiquidRaw = _liquidAudioUrl.trim().startsWith('{');
 
-        <!-- Empty state -->
-        <div id="formEmpty" class="form-empty" style="display:flex">
-          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <path d="M22 12h-6l-2 3H10l-2-3H2"/>
-            <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
-          </svg>
-          <p>No classifications or objects</p>
-          <span>Select a segment from the left panel to begin annotation</span>
-        </div>
-
-        <!-- Form content -->
-        <div id="formContent" class="form-content">
-
-          <!-- Read-only header bar -->
-          <div class="form-hdr-bar">
-            <div class="form-hdr-item">ID: <strong id="fhId">#0001</strong></div>
-            <div class="form-hdr-item">SEGMENT: <strong id="fhSeg">001</strong></div>
-            <div class="form-hdr-item">TURN: <strong id="fhTurn">01</strong></div>
-            <div class="form-hdr-item">PAIR: <span class="lang-pair-badge" id="fhPair">EN-US → FR-FR</span></div>
-            <span class="form-hdr-time" id="fhTime">0:00 – 0:00</span>
-          </div>
-
-          <!-- Fields -->
-          <div class="form-body">
-
-            <!-- 1. Source Verbatim -->
-            <div class="form-field">
-              <div class="field-lbl">
-                1. Source Language Verbatim Transcription<span class="req-star">*</span>
-                <div class="lbl-right"><span class="lang-badge" id="srcBadge">EN-US</span></div>
-              </div>
-              <textarea class="field-textarea" id="f_src" name="seg_source_text" maxlength="1000"
-                placeholder="Type the exact spoken words in source language…"
-                oninput="DR7.form.onSrcInput(this)"></textarea>
-              <div class="char-counter" id="srcCounter">0 / 1000</div>
-            </div>
-
-            <!-- 2. Target Translation -->
-            <div class="form-field">
-              <div class="field-lbl">
-                2. Target Language Human Reference Translation<span class="req-star">*</span>
-                <div class="lbl-right"><span class="lang-badge" id="tgtBadge">FR-FR</span></div>
-              </div>
-              <textarea class="field-textarea" id="f_tgt" name="seg_target_text" maxlength="1000"
-                placeholder="Type the professional reference translation…"
-                oninput="DR7.form.onTgtInput(this)"></textarea>
-              <div class="char-counter" id="tgtCounter">0 / 1000</div>
-            </div>
-
-            <!-- Radio row -->
-            <div class="radio-row">
-              <div class="radio-block" id="rb_cs">
-                <div class="radio-block-lbl">5. Code-Switch Present<span class="req-star">*</span></div>
-                <div class="radio-opts">
-                  <label class="radio-opt">
-                    <input type="radio" name="seg_code_switch" id="r_cs_yes" value="yes" onchange="DR7.form.onRadio()"> Yes
-                  </label>
-                  <label class="radio-opt">
-                    <input type="radio" name="seg_code_switch" id="r_cs_no"  value="no"  onchange="DR7.form.onRadio()"> No
-                  </label>
-                </div>
-              </div>
-
-              <div class="radio-block" id="rb_cd">
-                <div class="radio-block-lbl">6. Context Dependency<span class="req-star">*</span></div>
-                <div class="radio-opts">
-                  <label class="radio-opt">
-                    <input type="radio" name="seg_context_dependency" id="r_cd_yes" value="yes" onchange="DR7.form.onRadio()"> Yes
-                  </label>
-                  <label class="radio-opt">
-                    <input type="radio" name="seg_context_dependency" id="r_cd_no"  value="no"  onchange="DR7.form.onRadio()"> No
-                  </label>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- /form-body -->
-
-          <!-- Footer -->
-          <div class="form-footer">
-            <button type="button" class="btn-draft-seg" onclick="DR7.form.saveDraft()">Save Draft</button>
-            <button type="button" class="btn-save-seg"  onclick="DR7.form.saveSegment()">Save Segment</button>
-          </div>
-
-        </div><!-- /formContent -->
-      </div><!-- /div7 -->
-
-    </div><!-- /parent -->
-  </div><!-- /dr7-main -->
-</crowd-form>
-
-<!-- Hidden audio element -->
-<audio id="audioPlayer" preload="auto"></audio>
-
-<!-- Toast -->
-<div class="dr7-toast" id="dr7Toast"></div>
-
-<!-- ═════════════════════════════════════ SCRIPT ════════════════════════════════════ -->
-<script>
-(function () {
-  'use strict';
-
-  // ── CONFIG ──────────────────────────────────────────────
-  // LOCAL_DEV_AUDIO: used when the Liquid tag is NOT substituted (local file:// testing).
-  // Set to the WAV filename relative to the HTML file, or a full URL.
-  const LOCAL_DEV_AUDIO = 'G2936_S0001_comfortable_slow_male.wav';
-
-  const _liquidAudioUrl = '{{ task.input.audioUrl | default: "" }}';
-  // If Liquid was NOT processed (raw '{{...}}' string), fall back to local dev audio.
-  const _isLiquidRaw    = _liquidAudioUrl.trim().startsWith('{');
-
-  const CFG = {
-    audioUrl:     _isLiquidRaw ? LOCAL_DEV_AUDIO : (_liquidAudioUrl.trim() || LOCAL_DEV_AUDIO),
-    srcLocale:    '{{ task.input.sourceLocale   | default: "en-US" }}',
-    tgtLocale:    '{{ task.input.targetLocale   | default: "fr-FR" }}',
-    speakerLabel: '{{ task.input.speakerLabel   | default: "Agent" }}',
-    domain:       '{{ task.input.domain         | default: "General" }}',
-    modality:     '{{ task.input.modality       | default: "Direct AST" }}',
-    direction:    '{{ task.input.direction      | default: "Source to Target" }}',
-    savedJson:    document.getElementById('annotations_output').value || '[]',
-    COLORS: ['#5f45ff','#10b981','#f59e0b','#ef4444','#06b6d4',
-             '#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16',
-             '#3b82f6','#a855f7','#22c55e','#fb923c','#e11d48']
-  };
-
-  // ── SEGMENT STORE ────────────────────────────────────────
-  const Store = (() => {
-    let segments    = [];
-    let activeId    = null;
-    let _nextSegNum = 1;
-
-    function _serialize() {
-      const json = JSON.stringify(segments);
-      const el = document.getElementById('annotations_output');
-      if (el) el.value = json;
-      // Mirror meta to hidden fields
-      const active = segments.find(s => s.id === activeId);
-      if (active) {
-        _mirrorMeta(active);
-      }
-      return json;
-    }
-
-    function _mirrorMeta(seg) {
-      ['src_locale','tgt_locale','spk_label','domain','modality','direction'].forEach(k => {
-        const map = {
-          src_locale: ['out_src_locale','sourceLocale'],
-          tgt_locale: ['out_tgt_locale','targetLocale'],
-          spk_label:  ['out_spk_label','speakerLabel'],
-          domain:     ['out_domain','domain'],
-          modality:   ['out_modality','modality'],
-          direction:  ['out_direction','direction'],
-        };
-        const [elId, prop] = map[k];
-        const el = document.getElementById(elId);
-        if (el && seg[prop] !== undefined) el.value = seg[prop];
-      });
-    }
-
-    function _metaSnap() {
-      return {
-        sourceLocale:  document.getElementById('meta_src').value,
-        targetLocale:  document.getElementById('meta_tgt').value,
-        speakerLabel:  document.getElementById('meta_spk').value,
-        domain:        document.getElementById('meta_dom').value,
-        modality:      document.getElementById('meta_mod').value,
-        direction:     document.getElementById('meta_dir').value,
+      const CFG = {
+        audioUrl: _isLiquidRaw ? LOCAL_DEV_AUDIO : (_liquidAudioUrl.trim() || LOCAL_DEV_AUDIO),
+        srcLocale: '{{ task.input.sourceLocale   | default: "en-US" }}',
+        tgtLocale: '{{ task.input.targetLocale   | default: "fr-FR" }}',
+        speakerLabel: '{{ task.input.speakerLabel   | default: "Agent" }}',
+        domain: '{{ task.input.domain         | default: "General" }}',
+        modality: '{{ task.input.modality       | default: "Direct AST" }}',
+        direction: '{{ task.input.direction      | default: "Source to Target" }}',
+        savedJson: document.getElementById('annotations_output').value || '[]',
+        COLORS: ['#5f45ff', '#10b981', '#f59e0b', '#ef4444', '#06b6d4',
+          '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#84cc16',
+          '#3b82f6', '#a855f7', '#22c55e', '#fb923c', '#e11d48']
       };
-    }
 
-    return {
-      init(jsonStr) {
-        try {
-          const arr = JSON.parse(jsonStr || '[]');
-          if (Array.isArray(arr) && arr.length) {
-            segments    = arr;
-            _nextSegNum = Math.max(...arr.map(s => s.segmentNumber || 0)) + 1;
+      // ── SEGMENT STORE ────────────────────────────────────────
+      const Store = (() => {
+        let segments = [];
+        let activeId = null;
+        let _nextSegNum = 1;
+
+        function _serialize() {
+          const json = JSON.stringify(segments);
+          const el = document.getElementById('annotations_output');
+          if (el) el.value = json;
+          // Mirror meta to hidden fields
+          const active = segments.find(s => s.id === activeId);
+          if (active) {
+            _mirrorMeta(active);
           }
-        } catch(e) { segments = []; }
-      },
+          return json;
+        }
 
-      add(startTime, endTime) {
-        const meta = _metaSnap();
-        const sNum = _nextSegNum++;
-        const seg = {
-          id:                 'seg_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-          segmentNumber:      sNum,
-          turnNumber:         sNum,
-          startTime:          +startTime.toFixed(4),
-          endTime:            +endTime.toFixed(4),
-          color:              CFG.COLORS[(sNum - 1) % CFG.COLORS.length],
-          sourceText:         '',
-          targetText:         '',
-          codeSwitch:         '',
-          contextDependency:  '',
-          sourceLocale:       meta.sourceLocale,
-          targetLocale:       meta.targetLocale,
-          speakerLabel:       meta.speakerLabel,
-          domain:             meta.domain,
-          modality:           meta.modality,
-          direction:          meta.direction,
-          isDraft:            true,
-          isSaved:            false,
-          createdAt:          new Date().toISOString(),
-          updatedAt:          new Date().toISOString(),
+        function _mirrorMeta(seg) {
+          ['src_locale', 'tgt_locale', 'spk_label', 'domain', 'modality', 'direction'].forEach(k => {
+            const map = {
+              src_locale: ['out_src_locale', 'sourceLocale'],
+              tgt_locale: ['out_tgt_locale', 'targetLocale'],
+              spk_label: ['out_spk_label', 'speakerLabel'],
+              domain: ['out_domain', 'domain'],
+              modality: ['out_modality', 'modality'],
+              direction: ['out_direction', 'direction'],
+            };
+            const [elId, prop] = map[k];
+            const el = document.getElementById(elId);
+            if (el && seg[prop] !== undefined) el.value = seg[prop];
+          });
+        }
+
+        function _metaSnap() {
+          return {
+            sourceLocale: document.getElementById('meta_src').value,
+            targetLocale: document.getElementById('meta_tgt').value,
+            speakerLabel: document.getElementById('meta_spk').value,
+            domain: document.getElementById('meta_dom').value,
+            modality: document.getElementById('meta_mod').value,
+            direction: document.getElementById('meta_dir').value,
+          };
+        }
+
+        return {
+          init(jsonStr) {
+            try {
+              const arr = JSON.parse(jsonStr || '[]');
+              if (Array.isArray(arr) && arr.length) {
+                segments = arr;
+                _nextSegNum = Math.max(...arr.map(s => s.segmentNumber || 0)) + 1;
+              }
+            } catch (e) { segments = []; }
+          },
+
+          add(startTime, endTime) {
+            const meta = _metaSnap();
+            const sNum = _nextSegNum++;
+            const seg = {
+              id: 'seg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+              segmentNumber: sNum,
+              turnNumber: sNum,
+              startTime: +startTime.toFixed(4),
+              endTime: +endTime.toFixed(4),
+              color: CFG.COLORS[(sNum - 1) % CFG.COLORS.length],
+              sourceText: '',
+              targetText: '',
+              codeSwitch: '',
+              contextDependency: '',
+              sourceLocale: meta.sourceLocale,
+              targetLocale: meta.targetLocale,
+              speakerLabel: meta.speakerLabel,
+              domain: meta.domain,
+              modality: meta.modality,
+              direction: meta.direction,
+              isDraft: true,
+              isSaved: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            segments.push(seg);
+            _serialize();
+            return seg;
+          },
+
+          get(id) { return segments.find(s => s.id === id) || null; },
+          getAll() { return [...segments].sort((a, b) => a.startTime - b.startTime); },
+          getActive() { return this.get(activeId); },
+          getActiveId() { return activeId; },
+
+          update(id, patch) {
+            const s = this.get(id);
+            if (!s) return false;
+            Object.assign(s, patch, { updatedAt: new Date().toISOString() });
+            _serialize();
+            return true;
+          },
+
+          remove(id) {
+            segments = segments.filter(s => s.id !== id);
+            if (activeId === id) activeId = null;
+            _serialize();
+          },
+
+          setActive(id) { activeId = id; },
+          serialize() { return _serialize(); },
+          count() { return segments.length; },
         };
-        segments.push(seg);
-        _serialize();
-        return seg;
-      },
+      })();
 
-      get(id)         { return segments.find(s => s.id === id) || null; },
-      getAll()        { return [...segments].sort((a,b) => a.startTime - b.startTime); },
-      getActive()     { return this.get(activeId); },
-      getActiveId()   { return activeId; },
+      // ── WAVEFORM RENDERER (WaveSurfer-style bar chart) ────────
+      const Waveform = (() => {
+        let wCanvas, wCtx, rCanvas, rCtx;
+        let channelData = null;
+        let duration = 0;
+        let pRatio = 0;
+        let dpr = window.devicePixelRatio || 1;
+        let zoomScale = 1;
 
-      update(id, patch) {
-        const s = this.get(id);
-        if (!s) return false;
-        Object.assign(s, patch, { updatedAt: new Date().toISOString() });
-        _serialize();
-        return true;
-      },
+        const BAR_W = 2;   // bar pixel width
+        const BAR_GAP = 1;   // gap between bars
 
-      remove(id) {
-        segments = segments.filter(s => s.id !== id);
-        if (activeId === id) activeId = null;
-        _serialize();
-      },
+        function _W(c) { return c.clientWidth || (c.width / dpr); }
+        function _H(c) { return c.clientHeight || (c.height / dpr); }
 
-      setActive(id) { activeId = id; },
-      serialize()   { return _serialize(); },
-      count()       { return segments.length; },
-    };
-  })();
+        function resize() {
+          const area = document.getElementById('waveArea');
+          const ruler = document.querySelector('.wf-ruler');
+          const scrollWrap = document.getElementById('timelineScrollContainer');
+          dpr = window.devicePixelRatio || 1;
 
-  // ── WAVEFORM RENDERER (WaveSurfer-style bar chart) ────────
-  const Waveform = (() => {
-    let wCanvas, wCtx, rCanvas, rCtx;
-    let channelData = null;
-    let duration    = 0;
-    let pRatio      = 0;
-    let dpr         = window.devicePixelRatio || 1;
+          const baseW = scrollWrap ? scrollWrap.clientWidth : area.clientWidth;
+          const aw = Math.floor(baseW * zoomScale);
+          const ah = area.clientHeight;
+          const rh = ruler.clientHeight;
 
-    const BAR_W   = 2;   // bar pixel width
-    const BAR_GAP = 1;   // gap between bars
+          wCanvas.width = aw * dpr; wCanvas.height = ah * dpr;
+          wCanvas.style.width = aw + 'px'; wCanvas.style.height = ah + 'px';
+          wCtx.scale(dpr, dpr);
 
-    function _W(c) { return c.clientWidth  || (c.width  / dpr); }
-    function _H(c) { return c.clientHeight || (c.height / dpr); }
+          rCanvas.width = aw * dpr; rCanvas.height = rh * dpr;
+          rCanvas.style.width = aw + 'px'; rCanvas.style.height = rh + 'px';
+          rCtx.scale(dpr, dpr);
+          
+          document.getElementById('timelineContentWidth').style.width = aw + 'px';
 
-    function resize() {
-      const area  = document.getElementById('waveArea');
-      const ruler = document.querySelector('.ruler-bar');
-      dpr = window.devicePixelRatio || 1;
-
-      const aw = area.clientWidth,  ah = area.clientHeight;
-      const rw = ruler.clientWidth, rh = ruler.clientHeight;
-
-      wCanvas.width  = aw * dpr; wCanvas.height  = ah * dpr;
-      wCanvas.style.width  = aw + 'px'; wCanvas.style.height = ah + 'px';
-      wCtx.scale(dpr, dpr);
-
-      rCanvas.width  = rw * dpr; rCanvas.height  = rh * dpr;
-      rCanvas.style.width  = rw + 'px'; rCanvas.style.height = rh + 'px';
-      rCtx.scale(dpr, dpr);
-
-      draw(); drawRuler();
-    }
-
-    function drawRuler() {
-      const W = _W(rCanvas), H = _H(rCanvas);
-      rCtx.clearRect(0,0,W,H);
-      rCtx.fillStyle = '#f9fafb'; rCtx.fillRect(0,0,W,H);
-      rCtx.strokeStyle = '#e4e6ed'; rCtx.lineWidth = 1;
-      rCtx.beginPath(); rCtx.moveTo(0,H); rCtx.lineTo(W,H); rCtx.stroke();
-
-      if (duration <= 0) {
-        rCtx.fillStyle = '#d1d5db'; rCtx.font = '9px Inter,sans-serif';
-        rCtx.fillText('Load audio to see timeline', 4, H/2+3);
-        return;
-      }
-
-      const minPx = 55;
-      const rawStep = duration / (W / minPx);
-      const steps  = [0.1,0.25,0.5,1,2,5,10,15,30,60,120,300];
-      const step   = steps.find(s => s >= rawStep) || 300;
-      const majorEvery = 5;
-
-      rCtx.font = '9px Inter,sans-serif';
-      rCtx.textAlign = 'center';
-
-      for (let t = 0; t <= duration + 0.001; t += step) {
-        const x = (t / duration) * W;
-        const major = Math.round(t / step) % majorEvery === 0;
-        rCtx.strokeStyle = major ? '#adb5bd' : '#dee2e6';
-        rCtx.lineWidth = 1;
-        rCtx.beginPath(); rCtx.moveTo(x, major ? 0 : H * 0.55); rCtx.lineTo(x, H); rCtx.stroke();
-        if (major) {
-          rCtx.fillStyle = '#6b7280';
-          rCtx.fillText(fmt(t), x, H - 2);
+          draw(); drawRuler();
         }
-      }
-    }
 
-    function draw() {
-      if (!wCanvas) return;
-      const W = _W(wCanvas), H = _H(wCanvas);
-      wCtx.clearRect(0,0,W,H);
+        function drawRuler() {
+          const W = _W(rCanvas), H = _H(rCanvas);
+          rCtx.clearRect(0, 0, W, H);
+          rCtx.fillStyle = '#f9fafb'; rCtx.fillRect(0, 0, W, H);
+          rCtx.strokeStyle = '#e4e6ed'; rCtx.lineWidth = 1;
+          rCtx.beginPath(); rCtx.moveTo(0, H); rCtx.lineTo(W, H); rCtx.stroke();
 
-      // background
-      wCtx.fillStyle = '#f0edff';
-      wCtx.fillRect(0,0,W,H);
-
-      // segment overlays
-      if (duration > 0) {
-        Store.getAll().forEach(seg => {
-          const x1 = (seg.startTime / duration) * W;
-          const x2 = (seg.endTime   / duration) * W;
-          const act = seg.id === Store.getActiveId();
-
-          wCtx.fillStyle = seg.color + (act ? '44' : '22');
-          wCtx.fillRect(x1, 0, x2 - x1, H);
-
-          wCtx.fillStyle = seg.color + (act ? 'cc' : '88');
-          wCtx.fillRect(x1,     0, 2, H);
-          wCtx.fillRect(x2 - 2, 0, 2, H);
-
-          if (x2 - x1 > 22) {
-            wCtx.font = 'bold 9px Inter,sans-serif';
-            wCtx.fillStyle = seg.color;
-            wCtx.textAlign = 'left';
-            wCtx.fillText('S' + seg.segmentNumber, x1 + 4, 11);
+          if (duration <= 0) {
+            rCtx.fillStyle = '#d1d5db'; rCtx.font = '9px Inter,sans-serif';
+            rCtx.fillText('Load audio to see timeline', 4, H / 2 + 3);
+            return;
           }
-        });
-      }
 
-      // waveform bars or placeholder
-      if (channelData && channelData.length) {
-        _drawWaveSurferBars(W, H);
-      } else {
-        _drawPlaceholderBars(W, H);
-      }
+          const minPx = 55;
+          const rawStep = duration / (W / minPx);
+          const steps = [0.1, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300];
+          const step = steps.find(s => s >= rawStep) || 300;
+          const majorEvery = 5;
 
-      // playhead
-      if (duration > 0) {
-        const px = pRatio * W;
-        wCtx.strokeStyle = '#5f45ff'; wCtx.lineWidth = 2;
-        wCtx.beginPath(); wCtx.moveTo(px,0); wCtx.lineTo(px,H); wCtx.stroke();
-        wCtx.fillStyle = '#5f45ff';
-        wCtx.beginPath();
-        wCtx.moveTo(px-5,0); wCtx.lineTo(px+5,0); wCtx.lineTo(px,9); wCtx.closePath();
-        wCtx.fill();
-      }
+          rCtx.font = '10px Inter,sans-serif';
+          rCtx.textAlign = 'center';
+          rCtx.textBaseline = 'middle';
 
-      // drag region
-      if (Drawer.active) {
-        const x1 = Math.min(Drawer.sx, Drawer.cx);
-        const x2 = Math.max(Drawer.sx, Drawer.cx);
-        wCtx.fillStyle = 'rgba(95,69,255,.15)';
-        wCtx.fillRect(x1, 0, x2-x1, H);
-        wCtx.strokeStyle = '#5f45ff'; wCtx.lineWidth = 1.5;
-        wCtx.setLineDash([5,3]);
-        wCtx.strokeRect(x1, 0, x2-x1, H);
-        wCtx.setLineDash([]);
-      }
-    }
+          // Bottom border
+          rCtx.strokeStyle = '#e5e7eb';
+          rCtx.lineWidth = 1;
+          rCtx.beginPath(); rCtx.moveTo(0, H); rCtx.lineTo(W, H); rCtx.stroke();
 
-    /* WaveSurfer-style: vertical bars mirrored top+bottom */
-    function _drawWaveSurferBars(W, H) {
-      const data    = channelData;
-      const step    = BAR_W + BAR_GAP;
-      const numBars = Math.floor(W / step);
-      const samplesPerBar = Math.max(1, Math.floor(data.length / numBars));
-      const mid     = H / 2;
-      const pxLine  = pRatio * W;
+          function fmtRuler(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            let str = m + ':' + String(s).padStart(2, '0');
+            const interval = step * majorEvery;
+            if (interval % 1 !== 0 || interval < 1) {
+               const dec = Math.round((sec % 1) * 10);
+               str += '.' + dec;
+            }
+            return str;
+          }
 
-      for (let i = 0; i < numBars; i++) {
-        const x   = i * step;
-        const base = Math.floor(i * samplesPerBar);
-        let peak = 0;
-        for (let j = 0; j < samplesPerBar; j++) {
-          const v = Math.abs(data[base + j] || 0);
-          if (v > peak) peak = v;
-        }
-        const barH = Math.max(2, peak * mid * 0.92);
-
-        // played = purple, unplayed = light purple
-        wCtx.fillStyle = x < pxLine ? '#7c65ff' : '#b5a8ff';
-
-        // top half bar
-        wCtx.beginPath();
-        wCtx.roundRect
-          ? wCtx.roundRect(x, mid - barH, BAR_W, barH, [1,1,0,0])
-          : wCtx.rect(x, mid - barH, BAR_W, barH);
-        wCtx.fill();
-
-        // bottom half bar (mirror, slightly dimmer)
-        wCtx.fillStyle = x < pxLine ? '#9b8bff' : '#cdc4ff';
-        wCtx.beginPath();
-        wCtx.roundRect
-          ? wCtx.roundRect(x, mid, BAR_W, barH, [0,0,1,1])
-          : wCtx.rect(x, mid, BAR_W, barH);
-        wCtx.fill();
-      }
-    }
-
-    /* Placeholder bars when no audio decoded yet */
-    function _drawPlaceholderBars(W, H) {
-      const step    = BAR_W + BAR_GAP;
-      const numBars = Math.floor(W / step);
-      const mid     = H / 2;
-
-      for (let i = 0; i < numBars; i++) {
-        const x = i * step;
-        // pseudo-random height using sine series
-        const t   = i / numBars;
-        const amp = 0.15 + 0.55 * Math.abs(
-          Math.sin(t * Math.PI * 12) * 0.5 +
-          Math.sin(t * Math.PI * 30) * 0.3 +
-          Math.sin(t * Math.PI * 7)  * 0.2
-        );
-        const barH = Math.max(2, amp * mid * 0.88);
-
-        wCtx.fillStyle = '#b5a8ff';
-        wCtx.beginPath();
-        wCtx.roundRect
-          ? wCtx.roundRect(x, mid - barH, BAR_W, barH, [1,1,0,0])
-          : wCtx.rect(x, mid - barH, BAR_W, barH);
-        wCtx.fill();
-
-        wCtx.fillStyle = '#cdc4ff';
-        wCtx.beginPath();
-        wCtx.roundRect
-          ? wCtx.roundRect(x, mid, BAR_W, barH, [0,0,1,1])
-          : wCtx.rect(x, mid, BAR_W, barH);
-        wCtx.fill();
-      }
-    }
-
-    return {
-      init() {
-        wCanvas = document.getElementById('waveCanvas');
-        wCtx    = wCanvas.getContext('2d');
-        rCanvas = document.getElementById('rulerCanvas');
-        rCtx    = rCanvas.getContext('2d');
-        resize();
-        window.addEventListener('resize', () => resize());
-      },
-      setChannelData(d) { channelData = d; draw(); },
-      setDuration(d)    { duration = d; drawRuler(); draw(); },
-      setPlayhead(r)    { pRatio = r; },
-      draw, drawRuler,
-      xToTime(x) { return duration ? (x / _W(wCanvas)) * duration : 0; },
-      timeToX(t) { return duration ? (t / duration) * _W(wCanvas) : 0; },
-      getW()     { return _W(wCanvas); },
-    };
-  })();
-
-  // ── RANGE DRAWER ─────────────────────────────────────────
-  const Drawer = (() => {
-    const self = { active: false, sx: 0, cx: 0 };
-    const MIN_PX = 5;
-
-    function getX(e, el) {
-      const r = el.getBoundingClientRect();
-      const cx = (e.touches ? e.touches[0].clientX : e.clientX);
-      return Math.max(0, Math.min(el.clientWidth, cx - r.left));
-    }
-
-    function down(e) {
-      if (e.button !== undefined && e.button !== 0) return;
-      const el = document.getElementById('waveArea');
-      self.active = true;
-      self.sx = self.cx = getX(e, el);
-    }
-    function move(e) {
-      if (!self.active) return;
-      if (e.cancelable) e.preventDefault();
-      const el = document.getElementById('waveArea');
-      self.cx = getX(e, el);
-      Waveform.draw();
-    }
-    function up(e) {
-      if (!self.active) return;
-      self.active = false;
-      const dx = Math.abs(self.cx - self.sx);
-      if (dx < MIN_PX) {
-        const t = Waveform.xToTime(self.cx);
-        AudioCtrl.seek(t);
-        Waveform.draw();
-        return;
-      }
-      const x1 = Math.min(self.sx, self.cx);
-      const x2 = Math.max(self.sx, self.cx);
-      const t1 = Waveform.xToTime(x1);
-      const t2 = Waveform.xToTime(x2);
-      if (t2 > t1) {
-        const seg = Store.add(t1, t2);
-        // Show metadata panel on first segment
-        _showMetaPanel();
-        SegPanel.render();
-        SegPanel.select(seg.id);
-      }
-      Waveform.draw();
-    }
-
-    function _showMetaPanel() {
-      document.getElementById('metaEmpty').style.display = 'none';
-      document.getElementById('metaBody').classList.add('active');
-    }
-
-    return {
-      init() {
-        const el = document.getElementById('waveArea');
-        el.addEventListener('mousedown', down);
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup',   up);
-        el.addEventListener('touchstart', down, { passive: false });
-        window.addEventListener('touchmove', move, { passive: false });
-        window.addEventListener('touchend',  up);
-      },
-      get active() { return self.active; },
-      get sx()     { return self.sx; },
-      get cx()     { return self.cx; },
-    };
-  })();
-
-  // ── AUDIO CONTROLLER ─────────────────────────────────────
-  const AudioCtrl = (() => {
-    let player, playing = false;
-    let _dragging = false;
-
-    function updateIcons() {
-      document.getElementById('icPlay').style.display  = playing ? 'none'  : 'block';
-      document.getElementById('icPause').style.display = playing ? 'block' : 'none';
-    }
-
-    function _updateProgress(ratio) {
-      const pct = (ratio * 100).toFixed(3) + '%';
-      document.getElementById('progressPlayed').style.width = pct;
-      document.getElementById('progressHandle').style.left  = pct;
-    }
-
-    function fmtDisplay() {
-      const t = player.currentTime, d = player.duration || 0;
-      document.getElementById('timeDisp').textContent = fmt(t) + ' / ' + fmt(d);
-      if (!_dragging) _updateProgress(d ? t / d : 0);
-    }
-
-    /* Draggable progress bar */
-    function _initProgressDrag() {
-      const wrap   = document.getElementById('progressWrap');
-      const handle = document.getElementById('progressHandle');
-
-      function _ratio(e) {
-        const r = wrap.getBoundingClientRect();
-        const cx = e.touches ? e.touches[0].clientX : e.clientX;
-        return Math.max(0, Math.min(1, (cx - r.left) / r.width));
-      }
-
-      function startDrag(e) {
-        _dragging = true;
-        handle.classList.add('dragging');
-        const r = _ratio(e);
-        _updateProgress(r);
-        AudioCtrl.seek(r * (player.duration || 0));
-      }
-      function onDrag(e) {
-        if (!_dragging) return;
-        if (e.cancelable) e.preventDefault();
-        const r = _ratio(e);
-        _updateProgress(r);
-        AudioCtrl.seek(r * (player.duration || 0));
-      }
-      function endDrag() {
-        if (!_dragging) return;
-        _dragging = false;
-        handle.classList.remove('dragging');
-      }
-
-      wrap.addEventListener('mousedown',  startDrag);
-      window.addEventListener('mousemove', onDrag);
-      window.addEventListener('mouseup',   endDrag);
-      wrap.addEventListener('touchstart', startDrag, { passive: false });
-      window.addEventListener('touchmove', onDrag,  { passive: false });
-      window.addEventListener('touchend',  endDrag);
-    }
-
-    return {
-      init(url) {
-        player = document.getElementById('audioPlayer');
-
-        if (url && url.trim() !== '') {
-          player.src = url;
-          console.log('[DR7] Audio src set to:', url);
+          for (let t = 0; t <= duration + 0.001; t += step) {
+            const x = (t / duration) * W;
+            const major = Math.round(t / step) % majorEvery === 0;
+            
+            rCtx.strokeStyle = major ? '#9ca3af' : '#d1d5db';
+            rCtx.beginPath();
+            rCtx.moveTo(x, major ? H - 8 : H - 4);
+            rCtx.lineTo(x, H);
+            rCtx.stroke();
+            
+            if (major) {
+              rCtx.fillStyle = '#6b7280';
+              rCtx.fillText(fmtRuler(t), x, H / 2 - 2);
+            }
+          }
         }
 
-        player.addEventListener('loadedmetadata', () => {
-          document.getElementById('waveLoading').classList.add('hidden');
-          Waveform.setDuration(player.duration || 0);
-          fmtDisplay();
-        });
-        player.addEventListener('timeupdate', () => {
-          const d = player.duration || 1;
-          Waveform.setPlayhead(player.currentTime / d);
+        function draw() {
+          if (!wCanvas) return;
+          const W = _W(wCanvas), H = _H(wCanvas);
+          wCtx.clearRect(0, 0, W, H);
+
+          // background
+          wCtx.fillStyle = '#f0edff';
+          wCtx.fillRect(0, 0, W, H);
+
+          // segment overlays
+          if (duration > 0) {
+            Store.getAll().forEach(seg => {
+              const x1 = (seg.startTime / duration) * W;
+              const x2 = (seg.endTime / duration) * W;
+              const act = seg.id === Store.getActiveId();
+
+              wCtx.fillStyle = seg.color + (act ? '44' : '22');
+              wCtx.fillRect(x1, 0, x2 - x1, H);
+
+              wCtx.fillStyle = seg.color + (act ? 'cc' : '88');
+              wCtx.fillRect(x1, 0, 2, H);
+              wCtx.fillRect(x2 - 2, 0, 2, H);
+
+              if (x2 - x1 > 22) {
+                wCtx.font = 'bold 9px Inter,sans-serif';
+                wCtx.fillStyle = seg.color;
+                wCtx.textAlign = 'left';
+                wCtx.fillText('S' + seg.segmentNumber, x1 + 4, 11);
+              }
+            });
+          }
+
+          // waveform bars or placeholder
+          if (channelData && channelData.length) {
+            _drawWaveSurferBars(W, H);
+          } else {
+            _drawPlaceholderBars(W, H);
+          }
+
+          // playhead overlay is managed via AudioCtrl timeupdate
+
+          // drag region
+          if (Drawer.active) {
+            const x1 = Math.min(Drawer.sx, Drawer.cx);
+            const x2 = Math.max(Drawer.sx, Drawer.cx);
+            wCtx.fillStyle = 'rgba(95,69,255,.15)';
+            wCtx.fillRect(x1, 0, x2 - x1, H);
+            wCtx.strokeStyle = '#5f45ff'; wCtx.lineWidth = 1.5;
+            wCtx.setLineDash([5, 3]);
+            wCtx.strokeRect(x1, 0, x2 - x1, H);
+            wCtx.setLineDash([]);
+          }
+        }
+
+        /* WaveSurfer-style: vertical bars mirrored top+bottom */
+        function _drawWaveSurferBars(W, H) {
+          const data = channelData;
+          const step = BAR_W + BAR_GAP;
+          const numBars = Math.floor(W / step);
+          const samplesPerBar = Math.max(1, Math.floor(data.length / numBars));
+          const mid = H / 2;
+          const pxLine = pRatio * W;
+
+          for (let i = 0; i < numBars; i++) {
+            const x = i * step;
+            const base = Math.floor(i * samplesPerBar);
+            let peak = 0;
+            for (let j = 0; j < samplesPerBar; j++) {
+              const v = Math.abs(data[base + j] || 0);
+              if (v > peak) peak = v;
+            }
+            const normPeak = data.maxPeak ? (peak / data.maxPeak) : peak;
+            const barH = Math.max(2, normPeak * mid * 0.95);
+
+            // played = purple, unplayed = light purple
+            wCtx.fillStyle = x < pxLine ? '#7c65ff' : '#b5a8ff';
+
+            // top half bar
+            wCtx.beginPath();
+            wCtx.roundRect
+              ? wCtx.roundRect(x, mid - barH, BAR_W, barH, [1, 1, 0, 0])
+              : wCtx.rect(x, mid - barH, BAR_W, barH);
+            wCtx.fill();
+
+            // bottom half bar (mirror, slightly dimmer)
+            wCtx.fillStyle = x < pxLine ? '#9b8bff' : '#cdc4ff';
+            wCtx.beginPath();
+            wCtx.roundRect
+              ? wCtx.roundRect(x, mid, BAR_W, barH, [0, 0, 1, 1])
+              : wCtx.rect(x, mid, BAR_W, barH);
+            wCtx.fill();
+          }
+        }
+
+        /* Placeholder bars when no audio decoded yet */
+        function _drawPlaceholderBars(W, H) {
+          const step = BAR_W + BAR_GAP;
+          const numBars = Math.floor(W / step);
+          const mid = H / 2;
+
+          for (let i = 0; i < numBars; i++) {
+            const x = i * step;
+            // pseudo-random height using sine series
+            const t = i / numBars;
+            const amp = 0.15 + 0.55 * Math.abs(
+              Math.sin(t * Math.PI * 12) * 0.5 +
+              Math.sin(t * Math.PI * 30) * 0.3 +
+              Math.sin(t * Math.PI * 7) * 0.2
+            );
+            const barH = Math.max(2, amp * mid * 0.88);
+
+            wCtx.fillStyle = '#b5a8ff';
+            wCtx.beginPath();
+            wCtx.roundRect
+              ? wCtx.roundRect(x, mid - barH, BAR_W, barH, [1, 1, 0, 0])
+              : wCtx.rect(x, mid - barH, BAR_W, barH);
+            wCtx.fill();
+
+            wCtx.fillStyle = '#cdc4ff';
+            wCtx.beginPath();
+            wCtx.roundRect
+              ? wCtx.roundRect(x, mid, BAR_W, barH, [0, 0, 1, 1])
+              : wCtx.rect(x, mid, BAR_W, barH);
+            wCtx.fill();
+          }
+        }
+
+        return {
+          init() {
+            wCanvas = document.getElementById('waveCanvas');
+            wCtx = wCanvas.getContext('2d');
+            rCanvas = document.getElementById('rulerCanvas');
+            rCtx = rCanvas.getContext('2d');
+            resize();
+            window.addEventListener('resize', () => resize());
+          },
+          setChannelData(d) {
+            channelData = d;
+            let max = 0.001;
+            if (d && d.length) {
+              for (let i = 0; i < d.length; i++) {
+                const v = Math.abs(d[i]);
+                if (v > max) max = v;
+              }
+            }
+            if (channelData) channelData.maxPeak = max;
+            draw();
+          },
+          setDuration(d) { duration = d; drawRuler(); draw(); },
+          setPlayhead(r) { pRatio = r; },
+          draw, drawRuler,
+          setZoom(dz) { zoomScale = Math.max(1, Math.min(10, zoomScale + dz)); resize(); },
+          getPlayheadX() { return pRatio * _W(wCanvas); },
+          xToTime(x) { return duration ? (x / _W(wCanvas)) * duration : 0; },
+          timeToX(t) { return duration ? (t / duration) * _W(wCanvas) : 0; },
+          getW() { return _W(wCanvas); },
+        };
+      })();
+
+      // ── RANGE DRAWER ─────────────────────────────────────────
+      const Drawer = (() => {
+        const self = { active: false, sx: 0, cx: 0 };
+        const MIN_PX = 5;
+        let mode = 'draw';
+
+        function getX(e, el) {
+          const r = el.getBoundingClientRect();
+          const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+          return Math.max(0, Math.min(el.clientWidth, cx - r.left));
+        }
+
+        function down(e) {
+          if (e.button !== undefined && e.button !== 0) return;
+          const el = document.getElementById('waveArea');
+          const x = getX(e, el);
+          self.active = true;
+          self.sx = self.cx = x;
+          
+          const pxLine = Waveform.getPlayheadX();
+          if (Math.abs(x - pxLine) < 15) {
+             mode = 'scrub';
+          } else {
+             mode = 'draw';
+          }
+        }
+        function move(e) {
+          if (!self.active) return;
+          if (e.cancelable) e.preventDefault();
+          const el = document.getElementById('waveArea');
+          self.cx = getX(e, el);
+          if (mode === 'scrub') {
+            const t = Waveform.xToTime(self.cx);
+            AudioCtrl.seek(t);
+          }
           Waveform.draw();
-          fmtDisplay();
-        });
-        player.addEventListener('ended', () => {
-          playing = false; updateIcons();
-          _updateProgress(1);
-        });
-        player.addEventListener('canplaythrough', () => {
-          document.getElementById('waveLoading').classList.add('hidden');
-        });
-        player.addEventListener('error', () => {
-          document.getElementById('waveLoading').classList.add('hidden');
-          Waveform.draw();
-        });
-
-        document.getElementById('volSlider').addEventListener('input', function() {
-          player.volume = +this.value;
-        });
-
-        _initProgressDrag();
-      },
-
-      togglePlay() {
-        if (!player.src && !player.currentSrc) return;
-        if (playing) {
-          player.pause(); playing = false;
-        } else {
-          player.play().then(() => { playing = true; }).catch(() => {});
         }
-        updateIcons();
-      },
+        function up(e) {
+          if (!self.active) return;
+          self.active = false;
+          if (mode === 'scrub') return;
+          const dx = Math.abs(self.cx - self.sx);
+          if (dx < MIN_PX) {
+            const t = Waveform.xToTime(self.cx);
+            AudioCtrl.seek(t);
+            Waveform.draw();
+            return;
+          }
+          const x1 = Math.min(self.sx, self.cx);
+          const x2 = Math.max(self.sx, self.cx);
+          const t1 = Waveform.xToTime(x1);
+          const t2 = Waveform.xToTime(x2);
+          if (t2 > t1) {
+            const seg = Store.add(t1, t2);
+            SegPanel.render();
+            SegPanel.select(seg.id);
+          }
+          Waveform.draw();
+        }
 
-      skip(sec) {
-        const d = player.duration || 0;
-        player.currentTime = Math.max(0, Math.min(d, player.currentTime + sec));
-      },
+        return {
+          init() {
+            const el = document.getElementById('waveArea');
+            el.addEventListener('mousedown', down);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', up);
+            el.addEventListener('touchstart', down, { passive: false });
+            window.addEventListener('touchmove', move, { passive: false });
+            window.addEventListener('touchend', up);
+          },
+          get active() { return self.active; },
+          get sx() { return self.sx; },
+          get cx() { return self.cx; },
+        };
+      })();
 
-      seek(t) {
-        const d = player.duration || 0;
-        player.currentTime = Math.max(0, Math.min(d, t));
-      },
+      // ── AUDIO CONTROLLER ─────────────────────────────────────
+      const AudioCtrl = (() => {
+        let player, playing = false;
+        let _dragging = false;
 
-      setSpeed(v) { player.playbackRate = +v; },
-      getDuration()    { return player ? (player.duration    || 0) : 0; },
-      getCurrentTime() { return player ? player.currentTime         : 0; },
-    };
-  })();
+        function updateIcons() {
+          document.getElementById('icPlay').style.display = playing ? 'none' : 'block';
+          document.getElementById('icPause').style.display = playing ? 'block' : 'none';
+        }
 
-  // ── SEGMENT PANEL ─────────────────────────────────────────
-  const SegPanel = (() => {
-    function render() {
-      const list     = document.getElementById('segmentList');
-      const empty    = document.getElementById('segEmptyState');
-      const badge    = document.getElementById('segCountBadge');
-      const segments = Store.getAll();
+        function _updateProgress(ratio) {
+          const pct = (ratio * 100).toFixed(3) + '%';
+          const overlay = document.getElementById('playheadOverlay');
+          if (overlay) overlay.style.left = pct;
+        }
 
-      badge.textContent = segments.length;
+        function fmtDisplay() {
+          const t = player.currentTime, d = player.duration || 0;
+          document.getElementById('timeDisp').textContent = fmt(t) + ' / ' + fmt(d);
+          if (!_dragging) _updateProgress(d ? t / d : 0);
+        }
 
-      if (!segments.length) {
-        list.innerHTML = '';
-        empty.style.display = 'flex';
-        return;
-      }
-      empty.style.display = 'none';
-      list.innerHTML = '';
+        /* Draggable Playhead Pin */
+        function _initPlayheadDrag() {
+          const wrap = document.getElementById('timelineContentWidth');
+          const handle = document.getElementById('playheadHandle');
+          if (!wrap || !handle) return;
 
-      segments.forEach(seg => {
-        const act  = seg.id === Store.getActiveId();
-        const card = document.createElement('div');
-        card.className = 'seg-card' + (act ? ' active' : '') + (seg.isSaved ? ' saved' : '');
-        card.dataset.id = seg.id;
+          function _ratio(e) {
+            const r = wrap.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (cx - r.left) / r.width));
+          }
 
-        card.innerHTML = `
+          function startDrag(e) {
+            if (e.button !== undefined && e.button !== 0) return;
+            e.stopPropagation();
+            _dragging = true;
+            const r = _ratio(e);
+            _updateProgress(r);
+            AudioCtrl.seek(r * (player.duration || 0));
+          }
+          function onDrag(e) {
+            if (!_dragging) return;
+            if (e.cancelable) e.preventDefault();
+            const r = _ratio(e);
+            _updateProgress(r);
+            AudioCtrl.seek(r * (player.duration || 0));
+          }
+          function endDrag() {
+            if (!_dragging) return;
+            _dragging = false;
+          }
+
+          handle.addEventListener('mousedown', startDrag);
+          window.addEventListener('mousemove', onDrag);
+          window.addEventListener('mouseup', endDrag);
+          handle.addEventListener('touchstart', startDrag, { passive: false });
+          window.addEventListener('touchmove', onDrag, { passive: false });
+          window.addEventListener('touchend', endDrag);
+        }
+
+        return {
+          init(url) {
+            player = document.getElementById('audioPlayer');
+
+            if (url && url.trim() !== '') {
+              player.src = url;
+              console.log('[DR7] Audio src set to:', url);
+            }
+
+            player.addEventListener('loadedmetadata', () => {
+              document.getElementById('waveLoading').classList.add('hidden');
+              Waveform.setDuration(player.duration || 0);
+              fmtDisplay();
+            });
+            player.addEventListener('timeupdate', () => {
+              const d = player.duration || 1;
+              Waveform.setPlayhead(player.currentTime / d);
+              Waveform.draw();
+              fmtDisplay();
+            });
+            player.addEventListener('ended', () => {
+              playing = false; updateIcons();
+              _updateProgress(1);
+            });
+            player.addEventListener('canplaythrough', () => {
+              document.getElementById('waveLoading').classList.add('hidden');
+            });
+            player.addEventListener('error', () => {
+              document.getElementById('waveLoading').classList.add('hidden');
+              Waveform.draw();
+            });
+
+            document.getElementById('volSlider').addEventListener('input', function () {
+              player.volume = +this.value;
+            });
+
+            _initPlayheadDrag();
+          },
+
+          togglePlay() {
+            if (!player.src && !player.currentSrc) return;
+            if (playing) {
+              player.pause(); playing = false;
+            } else {
+              player.play().then(() => { playing = true; }).catch(() => { });
+            }
+            updateIcons();
+          },
+
+          skip(sec) {
+            const d = player.duration || 0;
+            player.currentTime = Math.max(0, Math.min(d, player.currentTime + sec));
+          },
+
+          seek(t) {
+            const d = player.duration || 0;
+            player.currentTime = Math.max(0, Math.min(d, t));
+          },
+
+          zoom(dz) { Waveform.setZoom(dz); },
+          
+          setSpeed(v) { player.playbackRate = +v; },
+          getDuration() { return player ? (player.duration || 0) : 0; },
+          getCurrentTime() { return player ? player.currentTime : 0; },
+        };
+      })();
+
+      // ── SEGMENT PANEL ─────────────────────────────────────────
+      const SegPanel = (() => {
+        function render() {
+          const list = document.getElementById('segmentList');
+          const empty = document.getElementById('segEmptyState');
+          const badge = document.getElementById('segCountBadge');
+          const segments = Store.getAll();
+
+          badge.textContent = segments.length;
+
+          if (!segments.length) {
+            list.innerHTML = '';
+            empty.style.display = 'flex';
+            return;
+          }
+          empty.style.display = 'none';
+          list.innerHTML = '';
+
+          segments.forEach(seg => {
+            const act = seg.id === Store.getActiveId();
+            const card = document.createElement('div');
+            card.className = 'seg-card' + (act ? ' active' : '') + (seg.isSaved ? ' saved' : '');
+            card.dataset.id = seg.id;
+
+            card.innerHTML = `
           <div class="seg-dot" style="background:${seg.color}"></div>
           <div class="seg-icon-box">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/>
-            </svg>
           </div>
           <div class="seg-info">
             <div class="seg-name">Segment ${seg.segmentNumber} (${seg.speakerLabel})</div>
@@ -1476,341 +2362,375 @@
           <div class="seg-saved-dot" title="Saved"></div>
           <button class="seg-action-btn view" title="Seek to segment"
                   onclick="event.stopPropagation(); DR7.audio.seek(${seg.startTime})">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            </svg>
           </button>
           <button class="seg-action-btn del" title="Delete segment"
                   onclick="event.stopPropagation(); DR7.deleteSegment('${seg.id}')">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
             </svg>
           </button>`;
-        card.addEventListener('click', () => select(seg.id));
-        list.appendChild(card);
-      });
-    }
-
-    function select(id) {
-      Form.flushToStore();
-      Store.setActive(id);
-      Form.load(id);
-      render();
-      Waveform.draw();
-    }
-
-    return { render, select };
-  })();
-
-  // ── META PANEL ────────────────────────────────────────────
-  const MetaPanel = (() => {
-    function get() {
-      return {
-        sourceLocale:  document.getElementById('meta_src').value,
-        targetLocale:  document.getElementById('meta_tgt').value,
-        speakerLabel:  document.getElementById('meta_spk').value,
-        domain:        document.getElementById('meta_dom').value,
-        modality:      document.getElementById('meta_mod').value,
-        direction:     document.getElementById('meta_dir').value,
-      };
-    }
-    function set(vals) {
-      [['meta_src','sourceLocale'],['meta_tgt','targetLocale'],
-       ['meta_spk','speakerLabel'],['meta_dom','domain'],
-       ['meta_mod','modality'],   ['meta_dir','direction']].forEach(([id,k]) => {
-        const el = document.getElementById(id);
-        if (el && vals[k] !== undefined) el.value = vals[k];
-      });
-    }
-    function onChange() {
-      const id = Store.getActiveId();
-      if (!id) return;
-      const meta = get();
-      Store.update(id, meta);
-      document.getElementById('fhPair').textContent =
-        meta.sourceLocale.toUpperCase() + ' → ' + meta.targetLocale.toUpperCase();
-      document.getElementById('srcBadge').textContent = meta.sourceLocale.toUpperCase();
-      document.getElementById('tgtBadge').textContent = meta.targetLocale.toUpperCase();
-    }
-    return { get, set, onChange };
-  })();
-
-  // ── ANNOTATION FORM ───────────────────────────────────────
-  const Form = (() => {
-    let _autoTimer = null;
-
-    function _setCounter(id, val, max) {
-      const el = document.getElementById(id);
-      el.textContent = val + ' / ' + max;
-      el.className = 'char-counter' + (val > max*0.9 ? ' warn' : '') + (val >= max ? ' over' : '');
-    }
-
-    function load(id) {
-      const seg = Store.get(id);
-      const empty   = document.getElementById('formEmpty');
-      const content = document.getElementById('formContent');
-
-      if (!seg) { empty.style.display='flex'; content.style.display='none'; return; }
-
-      empty.style.display   = 'none';
-      content.style.display = 'flex';
-
-      const sn = String(seg.segmentNumber).padStart(3,'0');
-      const tn = String(seg.turnNumber).padStart(2,'0');
-      document.getElementById('fhId').textContent   = '#' + sn;
-      document.getElementById('fhSeg').textContent  = sn;
-      document.getElementById('fhTurn').textContent = tn;
-      document.getElementById('fhPair').textContent =
-        seg.sourceLocale.toUpperCase() + ' → ' + seg.targetLocale.toUpperCase();
-      document.getElementById('fhTime').textContent =
-        fmt(seg.startTime) + ' – ' + fmt(seg.endTime);
-
-      document.getElementById('srcBadge').textContent = seg.sourceLocale.toUpperCase();
-      document.getElementById('tgtBadge').textContent = seg.targetLocale.toUpperCase();
-
-      const srcEl = document.getElementById('f_src');
-      const tgtEl = document.getElementById('f_tgt');
-      srcEl.value = seg.sourceText || '';
-      tgtEl.value = seg.targetText || '';
-      srcEl.classList.remove('error');
-      tgtEl.classList.remove('error');
-      _setCounter('srcCounter', (seg.sourceText||'').length, 1000);
-      _setCounter('tgtCounter', (seg.targetText||'').length, 1000);
-
-      document.getElementById('r_cs_yes').checked = seg.codeSwitch        === 'yes';
-      document.getElementById('r_cs_no').checked  = seg.codeSwitch        === 'no';
-      document.getElementById('r_cd_yes').checked = seg.contextDependency === 'yes';
-      document.getElementById('r_cd_no').checked  = seg.contextDependency === 'no';
-
-      MetaPanel.set({
-        sourceLocale: seg.sourceLocale, targetLocale: seg.targetLocale,
-        speakerLabel: seg.speakerLabel, domain: seg.domain,
-        modality: seg.modality,         direction: seg.direction,
-      });
-
-      document.getElementById('rb_cs').classList.remove('error');
-      document.getElementById('rb_cd').classList.remove('error');
-    }
-
-    function _collect() {
-      const cs = document.querySelector('input[name="seg_code_switch"]:checked');
-      const cd = document.querySelector('input[name="seg_context_dependency"]:checked');
-      return {
-        sourceText:        document.getElementById('f_src').value || '',
-        targetText:        document.getElementById('f_tgt').value || '',
-        codeSwitch:        cs ? cs.value : '',
-        contextDependency: cd ? cd.value : '',
-        ...MetaPanel.get(),
-      };
-    }
-
-    function flushToStore() {
-      const id = Store.getActiveId();
-      if (!id) return;
-      Store.update(id, _collect());
-    }
-
-    function _scheduleAutoSave() {
-      clearTimeout(_autoTimer);
-      _autoTimer = setTimeout(() => flushToStore(), 400);
-    }
-
-    function onSrcInput(el) {
-      _setCounter('srcCounter', el.value.length, 1000);
-      el.classList.remove('error');
-      _scheduleAutoSave();
-    }
-
-    function onTgtInput(el) {
-      _setCounter('tgtCounter', el.value.length, 1000);
-      el.classList.remove('error');
-      _scheduleAutoSave();
-    }
-
-    function onRadio() { _scheduleAutoSave(); }
-
-    function saveDraft() { flushToStore(); toast('Draft saved', 'success'); }
-
-    function saveSegment() {
-      const id = Store.getActiveId();
-      if (!id) return;
-      const data = _collect();
-      let ok = true;
-
-      if (!data.sourceText.trim()) { document.getElementById('f_src').classList.add('error'); ok = false; }
-      if (!data.targetText.trim()) { document.getElementById('f_tgt').classList.add('error'); ok = false; }
-      if (!data.codeSwitch)        { document.getElementById('rb_cs').classList.add('error'); ok = false; }
-      if (!data.contextDependency) { document.getElementById('rb_cd').classList.add('error'); ok = false; }
-
-      if (!ok) { toast('Please fill in all required fields', 'error'); return; }
-
-      Store.update(id, { ...data, isDraft: false, isSaved: true });
-      SegPanel.render();
-      Waveform.draw();
-      toast('Segment saved ✓', 'success');
-    }
-
-    return { load, flushToStore, onSrcInput, onTgtInput, onRadio, saveDraft, saveSegment };
-  })();
-
-  // ── AUDIO DECODER ─────────────────────────────────────────
-  // Uses XHR instead of fetch() so it works on file:// (local dev) AND https:// (prod).
-  function decodeAudio(url) {
-    return new Promise(resolve => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.responseType = 'arraybuffer';
-      xhr.onload = () => {
-        if (xhr.status !== 200 && xhr.status !== 0) {
-          console.warn('[DR7] XHR failed, status:', xhr.status);
-          resolve(null); return;
+            card.addEventListener('click', () => select(seg.id));
+            list.appendChild(card);
+          });
         }
-        const actx = new (window.AudioContext || window.webkitAudioContext)();
-        actx.decodeAudioData(xhr.response,
-          buf  => resolve(buf.getChannelData(0)),
-          err  => { console.warn('[DR7] Decode error:', err); resolve(null); }
-        );
-      };
-      xhr.onerror = () => { console.warn('[DR7] XHR network error'); resolve(null); };
-      xhr.send();
-    });
-  }
 
-  // ── VALIDATOR ─────────────────────────────────────────────
-  function validate() {
-    Form.flushToStore();
-    const segs = Store.getAll();
-
-    if (!segs.length) {
-      toast('Please create at least one segment before submitting', 'error');
-      return false;
-    }
-
-    const bad = segs.filter(s =>
-      !s.sourceText || !s.targetText || !s.codeSwitch || !s.contextDependency
-    );
-
-    if (bad.length) {
-      toast(bad.length + ' segment(s) have incomplete required fields', 'error');
-      SegPanel.select(bad[0].id);
-      return false;
-    }
-
-    document.getElementById('progress_status').value = 'completed';
-    Store.serialize();
-    return true;
-  }
-
-  // ── UTILITIES ─────────────────────────────────────────────
-  function fmt(sec) {
-    if (!sec || isNaN(sec)) return '0:00';
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return m + ':' + String(s).padStart(2,'0');
-  }
-
-  let _toastTimer;
-  function toast(msg, type='error') {
-    const el = document.getElementById('dr7Toast');
-    el.textContent = msg;
-    el.className   = 'dr7-toast ' + type + ' show';
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
-  }
-
-  // ── PUBLIC API ────────────────────────────────────────────
-  window.DR7 = {
-    audio: AudioCtrl,
-    form:  Form,
-    meta:  { onChange: MetaPanel.onChange.bind(MetaPanel) },
-
-    saveDraft() {
-      Form.flushToStore();
-      Store.serialize();
-      toast('Draft saved ✓', 'success');
-    },
-
-    deleteSegment(id) {
-      if (!confirm('Delete this segment and all its annotation data?')) return;
-      Store.remove(id);
-      const segs = Store.getAll();
-      // If no segments left, hide metadata panel again
-      if (!segs.length) {
-        document.getElementById('metaEmpty').style.display = 'flex';
-        document.getElementById('metaBody').classList.remove('active');
-      }
-      if (!Store.getActiveId()) {
-        document.getElementById('formContent').style.display = 'none';
-        document.getElementById('formEmpty').style.display   = 'flex';
-      }
-      SegPanel.render();
-      Waveform.draw();
-    },
-
-    async init() {
-      // Restore saved annotations
-      Store.init(CFG.savedJson);
-
-      // Waveform + drawer
-      Waveform.init();
-      Drawer.init();
-
-      // Pre-fill metadata from Liquid vars
-      MetaPanel.set({
-        sourceLocale: CFG.srcLocale,    targetLocale: CFG.tgtLocale,
-        speakerLabel: CFG.speakerLabel, domain:       CFG.domain,
-        modality:     CFG.modality,     direction:    CFG.direction,
-      });
-
-      // Audio
-      AudioCtrl.init(CFG.audioUrl);
-
-      // Decode real waveform
-      if (CFG.audioUrl && CFG.audioUrl.trim() !== '') {
-        decodeAudio(CFG.audioUrl).then(data => {
-          document.getElementById('waveLoading').classList.add('hidden');
-          if (data) Waveform.setChannelData(data);
-          else Waveform.draw(); // keep placeholder bars on decode fail
+        function select(id) {
+          Form.flushToStore();
+          Store.setActive(id);
+          Form.load(id);
+          render();
           Waveform.draw();
+        }
+
+        return { render, select };
+      })();
+
+      // ── META PANEL ────────────────────────────────────────────
+      const MetaPanel = (() => {
+        function get() {
+          return {
+            sourceLocale: document.getElementById('meta_src').value,
+            targetLocale: document.getElementById('meta_tgt').value,
+            speakerLabel: document.getElementById('meta_spk').value,
+            domain: document.getElementById('meta_dom').value,
+            modality: document.getElementById('meta_mod').value,
+            direction: document.getElementById('meta_dir').value,
+          };
+        }
+        function set(vals) {
+          [['meta_src', 'sourceLocale'], ['meta_tgt', 'targetLocale'],
+          ['meta_spk', 'speakerLabel'], ['meta_dom', 'domain'],
+          ['meta_mod', 'modality'], ['meta_dir', 'direction']].forEach(([id, k]) => {
+            const el = document.getElementById(id);
+            if (el && vals[k] !== undefined) el.value = vals[k];
+          });
+        }
+        function onChange() {
+          const id = Store.getActiveId();
+          if (!id) return;
+          const meta = get();
+          Store.update(id, meta);
+          document.getElementById('fhPair').textContent =
+            meta.sourceLocale.toUpperCase() + ' → ' + meta.targetLocale.toUpperCase();
+          document.getElementById('srcBadge').textContent = meta.sourceLocale.toUpperCase();
+          document.getElementById('tgtBadge').textContent = meta.targetLocale.toUpperCase();
+        }
+        return { get, set, onChange };
+      })();
+
+      // ── ANNOTATION FORM ───────────────────────────────────────
+      const Form = (() => {
+        let _autoTimer = null;
+
+        function _setCounter(id, val, max) {
+          const el = document.getElementById(id);
+          el.textContent = val + ' / ' + max;
+          el.className = 'char-counter' + (val > max * 0.9 ? ' warn' : '') + (val >= max ? ' over' : '');
+        }
+
+        function load(id) {
+          const seg = Store.get(id);
+          const empty = document.getElementById('formEmpty');
+          const content = document.getElementById('formContent');
+
+          if (!seg) { empty.style.display = 'flex'; content.style.display = 'none'; return; }
+
+          empty.style.display = 'none';
+          content.style.display = 'flex';
+
+          const sn = String(seg.segmentNumber).padStart(3, '0');
+          const tn = String(seg.turnNumber).padStart(2, '0');
+          document.getElementById('fhId').textContent = '#' + sn;
+          document.getElementById('fhSeg').textContent = sn;
+          document.getElementById('fhTurn').textContent = tn;
+          document.getElementById('fhPair').textContent =
+            seg.sourceLocale.toUpperCase() + ' → ' + seg.targetLocale.toUpperCase();
+          document.getElementById('fhTime').textContent =
+            fmt(seg.startTime) + ' – ' + fmt(seg.endTime);
+
+          document.getElementById('srcBadge').textContent = seg.sourceLocale.toUpperCase();
+          document.getElementById('tgtBadge').textContent = seg.targetLocale.toUpperCase();
+
+          const srcEl = document.getElementById('f_src');
+          const tgtEl = document.getElementById('f_tgt');
+          srcEl.value = seg.sourceText || '';
+          tgtEl.value = seg.targetText || '';
+          srcEl.classList.remove('error');
+          tgtEl.classList.remove('error');
+          _setCounter('srcCounter', (seg.sourceText || '').length, 1000);
+          _setCounter('tgtCounter', (seg.targetText || '').length, 1000);
+
+          document.getElementById('r_cs_yes').checked = seg.codeSwitch === 'yes';
+          document.getElementById('r_cs_no').checked = seg.codeSwitch === 'no';
+          document.getElementById('r_cd_yes').checked = seg.contextDependency === 'yes';
+          document.getElementById('r_cd_no').checked = seg.contextDependency === 'no';
+
+          MetaPanel.set({
+            sourceLocale: seg.sourceLocale, targetLocale: seg.targetLocale,
+            speakerLabel: seg.speakerLabel, domain: seg.domain,
+            modality: seg.modality, direction: seg.direction,
+          });
+
+          document.getElementById('rb_cs').classList.remove('error');
+          document.getElementById('rb_cd').classList.remove('error');
+        }
+
+        function _collect() {
+          const cs = document.querySelector('input[name="seg_code_switch"]:checked');
+          const cd = document.querySelector('input[name="seg_context_dependency"]:checked');
+          return {
+            sourceText: document.getElementById('f_src').value || '',
+            targetText: document.getElementById('f_tgt').value || '',
+            codeSwitch: cs ? cs.value : '',
+            contextDependency: cd ? cd.value : '',
+            ...MetaPanel.get(),
+          };
+        }
+
+        function flushToStore() {
+          const id = Store.getActiveId();
+          if (!id) return;
+          Store.update(id, _collect());
+        }
+
+        function _scheduleAutoSave() {
+          clearTimeout(_autoTimer);
+          _autoTimer = setTimeout(() => flushToStore(), 400);
+        }
+
+        function onSrcInput(el) {
+          _setCounter('srcCounter', el.value.length, 1000);
+          el.classList.remove('error');
+          _scheduleAutoSave();
+        }
+
+        function onTgtInput(el) {
+          _setCounter('tgtCounter', el.value.length, 1000);
+          el.classList.remove('error');
+          _scheduleAutoSave();
+        }
+
+        function onRadio() { _scheduleAutoSave(); }
+
+
+        return { load, flushToStore, onSrcInput, onTgtInput, onRadio };
+      })();
+
+      // ── AUDIO DECODER ─────────────────────────────────────────
+      // Uses XHR instead of fetch() so it works on file:// (local dev) AND https:// (prod).
+      function decodeAudio(url) {
+        return new Promise(resolve => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.responseType = 'arraybuffer';
+          xhr.onload = () => {
+            if (xhr.status !== 200 && xhr.status !== 0) {
+              console.warn('[DR7] XHR failed, status:', xhr.status);
+              resolve(null); return;
+            }
+            const actx = new (window.AudioContext || window.webkitAudioContext)();
+            actx.decodeAudioData(xhr.response,
+              buf => resolve(buf.getChannelData(0)),
+              err => { console.warn('[DR7] Decode error:', err); resolve(null); }
+            );
+          };
+          xhr.onerror = () => { console.warn('[DR7] XHR network error'); resolve(null); };
+          xhr.send();
         });
+      }
+
+      // ── VALIDATOR ─────────────────────────────────────────────
+      function validate() {
+        Form.flushToStore();
+        const segs = Store.getAll();
+
+        if (!segs.length) {
+          toast('Please create at least one segment before submitting', 'error');
+          return false;
+        }
+
+        const bad = segs.filter(s =>
+          !s.sourceText || !s.targetText || !s.codeSwitch || !s.contextDependency
+        );
+
+        if (bad.length) {
+          toast(bad.length + ' segment(s) have incomplete required fields', 'error');
+          SegPanel.select(bad[0].id);
+          return false;
+        }
+
+        document.getElementById('progress_status').value = 'completed';
+        Store.serialize();
+        return true;
+      }
+
+      // ── UTILITIES ─────────────────────────────────────────────
+      function fmt(sec) {
+        if (!sec || isNaN(sec)) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return m + ':' + String(s).padStart(2, '0');
+      }
+
+      let _toastTimer;
+      function toast(msg, type = 'error') {
+        const el = document.getElementById('dr7Toast');
+        el.textContent = msg;
+        el.className = 'dr7-toast ' + type + ' show';
+        clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+      }
+
+      // ── PUBLIC API ────────────────────────────────────────────
+      window.DR7 = {
+        audio: AudioCtrl,
+        form: Form,
+        meta: { onChange: MetaPanel.onChange.bind(MetaPanel) },
+
+        deleteSegment(id) {
+          if (!confirm('Delete this segment and all its annotation data?')) return;
+          Store.remove(id);
+          if (!Store.getActiveId()) {
+            document.getElementById('formContent').style.display = 'none';
+            document.getElementById('formEmpty').style.display = 'flex';
+          }
+          SegPanel.render();
+          Waveform.draw();
+        },
+
+        async init() {
+          // Restore saved annotations
+          Store.init(CFG.savedJson);
+
+          // Waveform + drawer
+          Waveform.init();
+          Drawer.init();
+
+          // Pre-fill metadata from Liquid vars
+          MetaPanel.set({
+            sourceLocale: CFG.srcLocale, targetLocale: CFG.tgtLocale,
+            speakerLabel: CFG.speakerLabel, domain: CFG.domain,
+            modality: CFG.modality, direction: CFG.direction,
+          });
+
+          // Audio
+          AudioCtrl.init(CFG.audioUrl);
+
+          // Decode real waveform
+          if (CFG.audioUrl && CFG.audioUrl.trim() !== '') {
+            decodeAudio(CFG.audioUrl).then(data => {
+              document.getElementById('waveLoading').classList.add('hidden');
+              if (data) Waveform.setChannelData(data);
+              else Waveform.draw(); // keep placeholder bars on decode fail
+              Waveform.draw();
+            });
+          } else {
+            document.getElementById('waveLoading').classList.add('hidden');
+            Waveform.draw();
+          }
+
+          // Restore segments
+          SegPanel.render();
+          Waveform.draw();
+
+          // Submit gate
+          const cf = document.querySelector('crowd-form');
+          if (cf) {
+            cf.addEventListener('submit', e => {
+              if (!validate()) { e.preventDefault(); return false; }
+            });
+          }
+
+          // Auto-persist
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') { Form.flushToStore(); Store.serialize(); }
+          });
+          window.addEventListener('beforeunload', () => { Form.flushToStore(); Store.serialize(); });
+        }
+      };
+
+      // ── SIDEBAR RESIZE ───────────────────────────────────────
+      (function () {
+        const handle = document.getElementById('sidebarVResizer');
+        if (!handle) return;
+        let _dragging = false, _startX = 0, _startW = 0;
+
+        handle.addEventListener('mousedown', function (e) {
+          _dragging = true;
+          _startX = e.clientX;
+          _startW = parseInt(getComputedStyle(document.documentElement)
+            .getPropertyValue('--dr7-col1')) || 200;
+          handle.classList.add('dragging');
+          document.body.style.cursor = 'ew-resize';
+          document.body.style.userSelect = 'none';
+          e.preventDefault();
+        });
+        window.addEventListener('mousemove', function (e) {
+          if (!_dragging) return;
+          const w = Math.max(140, Math.min(550, _startW + e.clientX - _startX));
+          document.documentElement.style.setProperty('--dr7-col1', w + 'px');
+        });
+        window.addEventListener('mouseup', function () {
+          if (!_dragging) return;
+          _dragging = false;
+          handle.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        });
+      })();
+
+      // ── HORIZONTAL RESIZERS ──────────────────────────────────
+      (function () {
+        function initHResizer(resizerId, varName, containerSelector, minPct = 15, maxPct = 85) {
+          const handle = document.getElementById(resizerId);
+          if (!handle) return;
+          let dragging = false, startY = 0, startH = 0, container = null;
+
+          handle.addEventListener('mousedown', function (e) {
+            dragging = true;
+            handle.classList.add('dragging');
+            startY = e.clientY;
+            container = handle.closest(containerSelector);
+            const currentPct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(varName)) || 50;
+            startH = (currentPct / 100) * container.clientHeight;
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+          });
+
+          window.addEventListener('mousemove', function (e) {
+            if (!dragging || !container) return;
+            const deltaY = e.clientY - startY;
+            const newH = startH + deltaY;
+            let pct = (newH / container.clientHeight) * 100;
+            pct = Math.max(minPct, Math.min(maxPct, pct));
+            document.documentElement.style.setProperty(varName, pct + '%');
+            window.dispatchEvent(new Event('resize'));
+          });
+
+          window.addEventListener('mouseup', function () {
+            if (!dragging) return;
+            dragging = false;
+            handle.classList.remove('dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+          });
+        }
+
+        initHResizer('div1HResizer', '--div1-top-h', '.div1', 15, 85);
+        initHResizer('div5HResizer', '--div5-top-h', '.div5', 25, 75);
+      })();
+
+      // Boot
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => DR7.init());
       } else {
-        document.getElementById('waveLoading').classList.add('hidden');
-        Waveform.draw();
+        DR7.init();
       }
 
-      // Restore segments & show metadata if any pre-existing
-      SegPanel.render();
-      if (Store.getAll().length) {
-        document.getElementById('metaEmpty').style.display = 'none';
-        document.getElementById('metaBody').classList.add('active');
-        Waveform.draw();
-      }
-
-      // Submit gate
-      const cf = document.querySelector('crowd-form');
-      if (cf) {
-        cf.addEventListener('submit', e => {
-          if (!validate()) { e.preventDefault(); return false; }
-        });
-      }
-
-      // Auto-persist
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') { Form.flushToStore(); Store.serialize(); }
-      });
-      window.addEventListener('beforeunload', () => { Form.flushToStore(); Store.serialize(); });
-    }
-  };
-
-  // Boot
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => DR7.init());
-  } else {
-    DR7.init();
-  }
-
-})();
-</script>
+    })();
+  </script>
 </body>
+
 </html>
