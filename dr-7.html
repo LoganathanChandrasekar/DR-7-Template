@@ -1309,6 +1309,113 @@
       margin-left: 2px;
     }
     /* ─── REVIEW PANEL ───────────────────────────────────── */
+    /* Columns Popup Styles */
+    .columns-popup {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      width: 240px;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      font-family: inherit;
+    }
+    .columns-popup.active {
+      display: flex;
+    }
+    .columns-popup-header {
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .columns-popup-title {
+      font-size: 12px;
+      color: #374151;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .columns-popup-search {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #111827;
+      padding: 4px 0 8px;
+      font-size: 13px;
+      color: #111827;
+      outline: none;
+      background: transparent;
+    }
+    .columns-popup-search::placeholder {
+      color: #9ca3af;
+    }
+    .columns-popup-list {
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .col-toggle-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      cursor: pointer;
+      gap: 12px;
+    }
+    .col-toggle-item:hover {
+      background: #f9fafb;
+    }
+    .col-toggle-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      user-select: none;
+    }
+    .col-toggle-switch {
+      position: relative;
+      width: 30px;
+      height: 16px;
+      background: #d1d5db;
+      border-radius: 20px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .col-toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .col-toggle-item.active .col-toggle-switch {
+      background: #374151;
+    }
+    .col-toggle-item.active .col-toggle-switch::after {
+      transform: translateX(14px);
+    }
+    .columns-popup-footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .columns-popup-action {
+      background: none;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: #111827;
+      cursor: pointer;
+    }
+    .columns-popup-action:hover {
+      color: #5f45ff;
+    }
+
     .review-th {
       font-size: 11px;
       font-weight: 600;
@@ -1650,51 +1757,71 @@
             </div>
 
             <!-- Audio controls -->
-            <div class="wf-controls">
-               <button type="button" class="wf-play-btn" id="playPauseBtn" onclick="DR7.audio.togglePlay()">
-                  <svg id="icPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <svg id="icPause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-               </button>
-               
-               <div class="wf-skip-group">
-                 <button type="button" class="wf-icon-btn" title="Back 10s" onclick="DR7.audio.skip(-10)">
-                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                     <polyline points="1 4 1 10 7 10" />
-                     <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
-                   </svg>
-                 </button>
-                 <button type="button" class="wf-icon-btn" title="Forward 10s" onclick="DR7.audio.skip(10)">
-                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                     <polyline points="23 4 23 10 17 10" />
-                     <path d="M20.49 15a9 9 0 1 1-.49-3.5" />
-                   </svg>
-                 </button>
+            <div class="wf-controls" style="position: relative; overflow: visible; justify-content: space-between; padding: 0 16px;">
+               <div class="flex items-center gap-1.5 overflow-visible controller-container" style="display:flex; align-items:center; gap: 6px;">
+                 <!-- Previous Frame / Back -->
+                 <div id="btnStart" class="premium-icon-btn" data-tooltip="Skip backward" onclick="DR7.audio.skip(-DR7.skipInterval)" style="cursor:pointer; width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#475569; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='transparent'; this.style.color='#475569'">
+                     <svg stroke="currentColor" fill="currentColor" stroke-width="2" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg">
+                         <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                         <line x1="5" x2="5" y1="19" y2="5"></line>
+                     </svg>
+                 </div>
+
+                 <!-- Play/Pause Toggle -->
+                 <div id="playPauseBtn" class="premium-icon-btn" data-tooltip="Play/Pause" onclick="DR7.audio.togglePlay()" style="cursor:pointer; width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#475569; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='transparent'; this.style.color='#475569'">
+                     <svg id="icPlay" stroke="currentColor" fill="currentColor" stroke-width="2" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg" style="display:block">
+                         <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                     </svg>
+                     <svg id="icPause" stroke="currentColor" fill="currentColor" stroke-width="2" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg" style="display:none">
+                         <rect x="6" y="4" width="4" height="16" rx="1" />
+                         <rect x="14" y="4" width="4" height="16" rx="1" />
+                     </svg>
+                 </div>
+
+                 <!-- Next Frame / Forward -->
+                 <div id="btnNext" class="premium-icon-btn" data-tooltip="Skip forward" onclick="DR7.audio.skip(DR7.skipInterval)" style="cursor:pointer; width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:#475569; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='transparent'; this.style.color='#475569'">
+                     <svg stroke="currentColor" fill="currentColor" stroke-width="2" viewBox="0 0 24 24" height="14" width="14" xmlns="http://www.w3.org/2000/svg">
+                         <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                         <line x1="19" x2="19" y1="5" y2="19"></line>
+                     </svg>
+                 </div>
+
+                 <!-- Frame Skip Selector Pill -->
+                 <div id="frameSkipSelectorPill" style="position:relative; margin-left:4px;">
+                     <button type="button" onclick="DR7.toggleSkipMenu(event)" style="display:flex; align-items:center; gap:4px; padding:0 10px; height:32px; background:#fff; border:1px solid #e2e8f0; border-radius:9999px; min-width:60px; justify-content:space-between; cursor:pointer; color:#334155; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#5f45ff'" onmouseout="this.style.borderColor='#e2e8f0'">
+                         <span id="currentFrameSkipDisplay" style="font-size:13px; font-weight:500;">1s</span>
+                         <svg viewBox="64 64 896 896" width="10" height="10" fill="currentColor" aria-hidden="true" style="color:#94a3b8; margin-top:2px;">
+                             <path d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"></path>
+                         </svg>
+                     </button>
+                     <!-- Menu -->
+                     <div id="skipIntervalMenu" style="display:none; position:absolute; bottom:100%; left:0; margin-bottom:8px; width:90px; background:#fff; border:1px solid #f1f5f9; box-shadow:0 10px 40px rgba(0,0,0,0.12); border-radius:18px; padding:8px 0; z-index:99999;">
+                         <div id="skipOptionsContainer" style="display:flex; flex-direction:column; max-height:160px; overflow-y:auto; scrollbar-width: none;">
+                           <!-- JS populated -->
+                         </div>
+                     </div>
+                 </div>
                </div>
 
-               <div class="wf-time-disp" id="timeDisp">0:00 / 0:00</div>
+               <div class="wf-time-disp" id="timeDisp" style="margin-left:12px; font-weight:500;">0:00 / 0:00</div>
                
-               <div class="wf-flex-spacer"></div>
+               <div class="wf-flex-spacer" style="flex:1;"></div>
 
                <!-- Volume -->
-               <div class="wf-vol-group">
-                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+               <div class="wf-vol-group" style="display:flex; align-items:center; gap:6px; margin-right:16px;">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
                  </svg>
-                 <input type="range" class="wf-vol-slider" id="volSlider" name="_vol_ui" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+                 <input type="range" class="wf-vol-slider" id="volSlider" name="_vol_ui" min="0" max="1" step="0.05" value="1" aria-label="Volume" style="width:70px; accent-color:#5f45ff;">
                </div>
 
-               <div class="wf-divider-vert"></div>
+               <div class="wf-divider-vert" style="height:16px; width:1px; background:#e2e8f0; margin-right:16px;"></div>
 
                <!-- Speed -->
                <div class="wf-speed-group">
-                 <select class="wf-speed-sel" id="speedSel" name="_speed_ui" onchange="DR7.audio.setSpeed(this.value)" aria-label="Playback speed">
+                 <select class="wf-speed-sel" id="speedSel" name="_speed_ui" onchange="DR7.audio.setSpeed(this.value)" aria-label="Playback speed" style="border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px; font-size:12px; color:#475569; outline:none; cursor:pointer;">
                    <option value="0.5">0.5×</option>
                    <option value="0.75">0.75×</option>
                    <option value="1" selected>1×</option>
@@ -1714,7 +1841,28 @@
           <div class="panel" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
             <div class="panel-header" style="justify-content: space-between; position: sticky; top: 0; background: #fff; z-index: 10;">
                <div class="panel-title" style="font-size: 14px;">Annotation Review</div>
-               <button type="button" class="btn-hdr-draft" style="padding: 4px 12px; font-size: 12px;">Filter</button>
+               <div style="display: flex; gap: 8px; position: relative;">
+                 <button type="button" class="btn-hdr-draft" id="btnColumnsPopup" style="padding: 4px 10px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h3v16H5zm6 0h3v16h-3zm6 0h3v16h-3z"/></svg>
+                   Columns
+                 </button>
+                 <button type="button" class="btn-hdr-draft" style="padding: 4px 12px; font-size: 12px;">Filter</button>
+                 
+                 <!-- Columns Popup -->
+                 <div class="columns-popup" id="columnsPopup">
+                   <div class="columns-popup-header">
+                     <div class="columns-popup-title">Find column</div>
+                     <input type="text" id="columnsPopupSearch" name="columns_search_ignore" class="columns-popup-search" placeholder="Column title" autocomplete="off">
+                   </div>
+                   <div class="columns-popup-list" id="columnsPopupList">
+                     <!-- Items generated by JS -->
+                   </div>
+                   <div class="columns-popup-footer">
+                     <button type="button" class="columns-popup-action" id="btnColumnsHideAll">HIDE ALL</button>
+                     <button type="button" class="columns-popup-action" id="btnColumnsShowAll">SHOW ALL</button>
+                   </div>
+                 </div>
+               </div>
             </div>
             <div class="panel-body" style="padding: 0; background: #fff; overflow: auto; position: relative;">
                <div id="reviewEmpty" class="form-empty">
@@ -2211,22 +2359,16 @@
              return;
           }
           
-          const pxLine = Waveform.getPlayheadX();
-          if (Math.abs(x - pxLine) < 15) {
-             mode = 'scrub';
-          } else {
-             mode = 'draw';
-          }
+          mode = 'draw';
+          const t = Waveform.xToTime(x);
+          AudioCtrl.seek(t);
         }
         function move(e) {
           if (!self.active) return;
           if (e.cancelable) e.preventDefault();
           const el = document.getElementById('waveArea');
           self.cx = getX(e, el);
-          if (mode === 'scrub') {
-            const t = Waveform.xToTime(self.cx);
-            AudioCtrl.seek(t);
-          } else if (mode === 'resize') {
+          if (mode === 'resize') {
             const t = Waveform.xToTime(self.cx);
             const seg = Store.get(resizeSegId);
             if (seg) {
@@ -2245,7 +2387,6 @@
         function up(e) {
           if (!self.active) return;
           self.active = false;
-          if (mode === 'scrub') return;
           if (mode === 'resize') {
              if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
              return;
@@ -2253,21 +2394,34 @@
           const dx = Math.abs(self.cx - self.sx);
           if (dx < MIN_PX) {
             const t = Waveform.xToTime(self.cx);
-            AudioCtrl.seek(t);
-            Waveform.draw();
-            return;
+            
+            // Check if they clicked an existing annotation
+            const segs = Store.getAll();
+            let clickedSeg = null;
+            for (let i = segs.length - 1; i >= 0; i--) {
+               if (t >= segs[i].startTime && t <= segs[i].endTime) {
+                  clickedSeg = segs[i];
+                  break;
+               }
+            }
+            
+            if (clickedSeg) {
+               SegPanel.select(clickedSeg.id);
+            }
+          } else {
+             const x1 = Math.min(self.sx, self.cx);
+             const x2 = Math.max(self.sx, self.cx);
+             const t1 = Waveform.xToTime(x1);
+             const t2 = Waveform.xToTime(x2);
+             if (t2 > t1) {
+               const seg = Store.add(t1, t2);
+               SegPanel.render();
+               SegPanel.select(seg.id);
+               if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
+             }
+             Waveform.draw();
           }
-          const x1 = Math.min(self.sx, self.cx);
-          const x2 = Math.max(self.sx, self.cx);
-          const t1 = Waveform.xToTime(x1);
-          const t2 = Waveform.xToTime(x2);
-          if (t2 > t1) {
-            const seg = Store.add(t1, t2);
-            SegPanel.render();
-            SegPanel.select(seg.id);
-            if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
-          }
-          Waveform.draw();
+
         }
 
         return {
@@ -2729,6 +2883,19 @@
         form: Form,
         meta: { onChange: MetaPanel.onChange.bind(MetaPanel) },
         review: ReviewPanel,
+        skipInterval: 1,
+        setSkipInterval(sec) {
+          this.skipInterval = sec;
+          const disp = document.getElementById('currentFrameSkipDisplay');
+          if (disp) disp.textContent = sec + 's';
+          const menu = document.getElementById('skipIntervalMenu');
+          if (menu) menu.style.display = 'none';
+        },
+        toggleSkipMenu(e) {
+          if (e) e.stopPropagation();
+          const menu = document.getElementById('skipIntervalMenu');
+          if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        },
 
         selectSegment(id) {
           SegPanel.select(id);
@@ -2753,6 +2920,44 @@
           // Waveform + drawer
           Waveform.init();
           Drawer.init();
+
+          // Initialize skip options
+          const skipContainer = document.getElementById('skipOptionsContainer');
+          if (skipContainer) {
+            for (let i = 1; i <= 10; i++) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.style.cssText = 'padding: 6px 12px; text-align: left; background: transparent; border: none; cursor: pointer; font-size: 12px; color: #334155; width: 100%; transition: background 0.2s; border-radius: 4px;';
+              btn.textContent = i + 's';
+              btn.onmouseover = () => btn.style.background = '#f1f5f9';
+              btn.onmouseout = () => btn.style.background = 'transparent';
+              btn.onclick = (e) => { e.stopPropagation(); window.DR7.setSkipInterval(i); };
+              skipContainer.appendChild(btn);
+            }
+          }
+          document.addEventListener('click', () => {
+            const menu = document.getElementById('skipIntervalMenu');
+            if (menu) menu.style.display = 'none';
+          });
+          document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              DR7.audio.skip(-DR7.skipInterval);
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              DR7.audio.skip(DR7.skipInterval);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              const sel = document.getElementById('speedSel');
+              if (sel) {
+                let idx = sel.selectedIndex + 1;
+                if (idx >= sel.options.length) idx = 0;
+                sel.selectedIndex = idx;
+                DR7.audio.setSpeed(sel.options[idx].value);
+              }
+            }
+          });
 
           // Pre-fill metadata from Liquid vars
           MetaPanel.set({
@@ -2870,7 +3075,102 @@
         initHResizer('div5HResizer', '--div5-top-h', '.div5', 25, 75);
       })();
 
+      // ── COLUMNS MANAGER ──────────────────────────────────────
+      (function() {
+        const btn = document.getElementById('btnColumnsPopup');
+        const popup = document.getElementById('columnsPopup');
+        const search = document.getElementById('columnsPopupSearch');
+        const list = document.getElementById('columnsPopupList');
+        const hideAll = document.getElementById('btnColumnsHideAll');
+        const showAll = document.getElementById('btnColumnsShowAll');
+        const table = document.getElementById('reviewTable');
+        if (!btn || !popup || !table) return;
 
+        const style = document.createElement('style');
+        style.id = 'dynamicColumnStyles';
+        document.head.appendChild(style);
+
+        let columns = [];
+        let isBuilt = false;
+
+        function buildList() {
+          const ths = table.querySelectorAll('thead th');
+          columns = Array.from(ths).map((th, index) => ({
+             index: index,
+             name: th.textContent.trim() || `Column ${index + 1}`,
+             visible: true
+          }));
+          renderList();
+          isBuilt = true;
+        }
+
+        function renderList(filterText = '') {
+          list.innerHTML = '';
+          const lowerFilter = filterText.toLowerCase();
+          columns.forEach(col => {
+             if (lowerFilter && !col.name.toLowerCase().includes(lowerFilter)) return;
+             
+             const item = document.createElement('div');
+             item.className = 'col-toggle-item' + (col.visible ? ' active' : '');
+             item.innerHTML = `
+               <div class="col-toggle-switch"></div>
+               <div class="col-toggle-name">${col.name}</div>
+             `;
+             item.addEventListener('click', (e) => {
+               col.visible = !col.visible;
+               updateStyles();
+               renderList(search.value);
+             });
+             list.appendChild(item);
+          });
+        }
+
+        function updateStyles() {
+           let css = '';
+           columns.forEach(col => {
+              if (!col.visible) {
+                 css += `.hide-col-${col.index} th:nth-child(${col.index + 1}), .hide-col-${col.index} td:nth-child(${col.index + 1}) { display: none !important; }\n`;
+                 table.classList.add(`hide-col-${col.index}`);
+              } else {
+                 table.classList.remove(`hide-col-${col.index}`);
+              }
+           });
+           style.innerHTML = css;
+        }
+
+        btn.addEventListener('click', (e) => {
+           e.stopPropagation();
+           if (!isBuilt) buildList();
+           popup.classList.toggle('active');
+           if (popup.classList.contains('active')) {
+              search.focus();
+           }
+        });
+
+        document.addEventListener('click', (e) => {
+           if (popup.classList.contains('active') && !popup.contains(e.target) && e.target !== btn) {
+              popup.classList.remove('active');
+           }
+        });
+        
+        popup.addEventListener('click', (e) => e.stopPropagation());
+
+        search.addEventListener('input', (e) => {
+           renderList(e.target.value);
+        });
+
+        hideAll.addEventListener('click', () => {
+           columns.forEach(c => c.visible = false);
+           updateStyles();
+           renderList(search.value);
+        });
+
+        showAll.addEventListener('click', () => {
+           columns.forEach(c => c.visible = true);
+           updateStyles();
+           renderList(search.value);
+        });
+      })();
 
       // Boot
       if (document.readyState === 'loading') {
