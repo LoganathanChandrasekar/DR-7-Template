@@ -428,6 +428,25 @@
       opacity: 1;
     }
 
+    .seg-action-btn.del,
+    .seg-action-btn.view {
+      display: none;
+    }
+
+    .seg-card:hover .seg-action-btn.del,
+    .seg-card:hover .seg-action-btn.view {
+      display: flex;
+    }
+
+    .seg-action-btn.visibility {
+      display: flex;
+      opacity: 1;
+    }
+
+    .seg-card:hover .seg-action-btn.visibility {
+      display: none;
+    }
+
     .seg-action-btn.view:hover {
       color: var(--brand);
     }
@@ -735,6 +754,32 @@
       border-radius: 6px;
       padding: 2px;
       box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .wf-speaker-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .wf-speaker-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      background: white;
+      cursor: pointer;
+      border-left: 6px solid var(--spk-color, #cbd5e1);
+      transition: all 0.2s;
+      outline: none;
+    }
+    .wf-speaker-btn.active {
+      background: var(--spk-bg, #f3f4f6);
+      border-color: var(--spk-border, #cbd5e1);
     }
     .wf-icon-btn {
       width: 28px;
@@ -1507,11 +1552,14 @@
 
           <!-- TOP PANEL : SEGMENTS -->
           <div class="panel div1-top">
-            <div class="panel-header">
+            <div class="panel-header" style="justify-content: space-between;">
               <div class="panel-title">
                 Segments
                 <span class="seg-count-badge" id="segCountBadge">0</span>
               </div>
+              <button class="seg-action-btn" title="Toggle all segments visibility" onclick="DR7.toggleAllVisibility()" style="opacity: 1; color: #64748b; margin-left: auto;">
+                 <svg id="globalEyeIcon" viewBox="64 64 896 896" focusable="false" data-icon="eye" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"></path></svg>
+              </button>
             </div>
             <div class="panel-body">
               <div id="segmentList" class="segment-list"></div>
@@ -1750,6 +1798,10 @@
                     <path d="M3 3v5h5"></path>
                   </svg>
                 </button>
+              </div>
+              
+              <div class="wf-speaker-group" id="wfSpeakerGroup">
+                 <!-- Populated dynamically based on #meta_spk -->
               </div>
             </div>
 
@@ -2080,10 +2132,11 @@
               contextDependency: '',
               sourceLocale: meta.sourceLocale,
               targetLocale: meta.targetLocale,
-              speakerLabel: meta.speakerLabel,
+              speakerLabel: typeof DR7 !== 'undefined' && DR7.activeSpeakerLabel ? DR7.activeSpeakerLabel : meta.speakerLabel,
               domain: meta.domain,
               modality: meta.modality,
               direction: meta.direction,
+              isHidden: false,
               isDraft: true,
               isSaved: false,
               createdAt: new Date().toISOString(),
@@ -2234,22 +2287,27 @@
           // segment overlays
           if (duration > 0) {
             Store.getAll().forEach(seg => {
+              if (seg.isHidden) return;
+              
               const x1 = (seg.startTime / duration) * W;
               const x2 = (seg.endTime / duration) * W;
               const act = seg.id === Store.getActiveId();
 
-              wCtx.fillStyle = seg.color + (act ? '44' : '22');
+              let baseColor = DR7.speakerColors && DR7.speakerColors[seg.speakerLabel] ? DR7.speakerColors[seg.speakerLabel] : seg.color;
+
+              wCtx.fillStyle = baseColor + (act ? '55' : '22');
               wCtx.fillRect(x1, 0, x2 - x1, H);
 
-              wCtx.fillStyle = seg.color + (act ? 'cc' : '88');
+              wCtx.fillStyle = baseColor + (act ? 'ee' : '88');
               wCtx.fillRect(x1, 0, 2, H);
               wCtx.fillRect(x2 - 2, 0, 2, H);
 
               if (x2 - x1 > 22) {
-                wCtx.font = 'bold 9px Inter,sans-serif';
-                wCtx.fillStyle = seg.color;
+                wCtx.font = 'bold 10px Inter,sans-serif';
+                wCtx.fillStyle = baseColor;
                 wCtx.textAlign = 'left';
-                wCtx.fillText('S' + seg.segmentNumber, x1 + 4, 11);
+                const labelTxt = seg.speakerLabel ? seg.speakerLabel : ('S' + seg.segmentNumber);
+                wCtx.fillText(labelTxt, x1 + 5, 14);
               }
             });
           }
@@ -2784,6 +2842,14 @@
           <button class="seg-action-btn view" title="Seek to segment"
                   onclick="event.stopPropagation(); DR7.audio.seek(${seg.startTime})">
           </button>
+          <button class="seg-action-btn visibility" title="Toggle visibility"
+                  onclick="event.stopPropagation(); DR7.toggleSegmentVisibility('${seg.id}')">
+             ${seg.isHidden ? 
+               '<svg viewBox="64 64 896 896" focusable="false" data-icon="eye-invisible" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M942.2 486.2Q889.47 375.11 816.7 305l-50.88 50.88C807.31 395.53 843.45 447.4 874.7 512 791.5 684.2 673.4 766 512 766q-72.67 0-133.87-22.38L323 798.75Q408 838 512 838q288.3 0 430.2-300.3a60.29 60.29 0 000-51.5zm-63.57-320.64L836 122.88a8 8 0 00-11.32 0L715.31 232.2Q624.86 186 512 186q-288.3 0-430.2 300.3a60.3 60.3 0 000 51.5q56.69 119.4 136.5 191.41L112.48 835a8 8 0 000 11.31L155.17 889a8 8 0 0011.31 0l712.15-712.12a8 8 0 000-11.32zM149.3 512C232.6 339.8 350.7 258 512 258c54.54 0 104.13 9.36 149.12 28.39l-70.3 70.3a176 176 0 00-238.13 238.13l-83.42 83.42C223.1 637.49 183.3 582.28 149.3 512zm246.7 0a112.11 112.11 0 01146.2-106.69L401.31 546.2A112 112 0 01396 512z"></path><path d="M508 624c-3.46 0-6.87-.16-10.25-.47l-52.82 52.82a176.09 176.09 0 00227.42-227.42l-52.82 52.82c.31 3.38.47 6.79.47 10.25a111.94 111.94 0 01-112 112z"></path></svg>'
+               :
+               '<svg viewBox="64 64 896 896" focusable="false" data-icon="eye" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"></path></svg>'
+             }
+          </button>
           <button class="seg-action-btn del" title="Delete segment"
                   onclick="event.stopPropagation(); DR7.deleteSegment('${seg.id}')">
             <svg viewBox="64 64 896 896" focusable="false" data-icon="delete" width="15" height="15" fill="currentColor" aria-hidden="true">
@@ -3066,7 +3132,80 @@
 
       // ── PUBLIC API ────────────────────────────────────────────
       window.DR7 = {
+        ui: null, // assigned below
         audio: AudioCtrl,
+        
+        speakerColors: {},
+        activeSpeakerLabel: '',
+        
+        initSpeakerToolbar() {
+           const select = document.getElementById('meta_spk');
+           const group = document.getElementById('wfSpeakerGroup');
+           if (!select || !group) return;
+           
+           group.innerHTML = '';
+           const options = Array.from(select.options).map(o => o.value);
+           
+           options.forEach((opt, idx) => {
+               const color = CFG.COLORS[idx % CFG.COLORS.length];
+               this.speakerColors[opt] = color;
+               
+               const btn = document.createElement('button');
+               btn.type = 'button';
+               btn.className = 'wf-speaker-btn';
+               btn.textContent = opt;
+               btn.style.setProperty('--spk-color', color);
+               btn.style.setProperty('--spk-bg', color + '15'); // 15% opacity hex
+               btn.style.setProperty('--spk-border', color + '40');
+               
+               btn.onclick = () => this.setSpeakerLabel(opt, btn);
+               
+               if (idx === 0) {
+                   this.activeSpeakerLabel = opt;
+                   btn.classList.add('active');
+               }
+               group.appendChild(btn);
+           });
+        },
+        
+        toggleSegmentVisibility(id) {
+           const seg = Store.get(id);
+           if (seg) {
+               Store.update(id, { isHidden: !seg.isHidden });
+               SegPanel.render();
+               Waveform.draw();
+               this.updateGlobalEyeIcon();
+           }
+        },
+        toggleAllVisibility() {
+           const segs = Store.getAll();
+           const allHidden = segs.length > 0 && segs.every(s => s.isHidden);
+           segs.forEach(s => {
+               Store.update(s.id, { isHidden: !allHidden });
+           });
+           SegPanel.render();
+           Waveform.draw();
+           this.updateGlobalEyeIcon();
+        },
+        updateGlobalEyeIcon() {
+           const segs = Store.getAll();
+           const allHidden = segs.length > 0 && segs.every(s => s.isHidden);
+           const icon = document.getElementById('globalEyeIcon');
+           if (icon) {
+               if (allHidden) {
+                   icon.innerHTML = '<path d="M942.2 486.2Q889.47 375.11 816.7 305l-50.88 50.88C807.31 395.53 843.45 447.4 874.7 512 791.5 684.2 673.4 766 512 766q-72.67 0-133.87-22.38L323 798.75Q408 838 512 838q288.3 0 430.2-300.3a60.29 60.29 0 000-51.5zm-63.57-320.64L836 122.88a8 8 0 00-11.32 0L715.31 232.2Q624.86 186 512 186q-288.3 0-430.2 300.3a60.3 60.3 0 000 51.5q56.69 119.4 136.5 191.41L112.48 835a8 8 0 000 11.31L155.17 889a8 8 0 0011.31 0l712.15-712.12a8 8 0 000-11.32zM149.3 512C232.6 339.8 350.7 258 512 258c54.54 0 104.13 9.36 149.12 28.39l-70.3 70.3a176 176 0 00-238.13 238.13l-83.42 83.42C223.1 637.49 183.3 582.28 149.3 512zm246.7 0a112.11 112.11 0 01146.2-106.69L401.31 546.2A112 112 0 01396 512z"></path><path d="M508 624c-3.46 0-6.87-.16-10.25-.47l-52.82 52.82a176.09 176.09 0 00227.42-227.42l-52.82 52.82c.31 3.38.47 6.79.47 10.25a111.94 111.94 0 01-112 112z"></path>';
+               } else {
+                   icon.innerHTML = '<path d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"></path>';
+               }
+           }
+        },
+        
+        setSpeakerLabel(label, btnEl) {
+           this.activeSpeakerLabel = label;
+           document.querySelectorAll('.wf-speaker-btn').forEach(btn => btn.classList.remove('active'));
+           if (btnEl) btnEl.classList.add('active');
+        },
+        
         form: Form,
         meta: { onChange: MetaPanel.onChange.bind(MetaPanel) },
         review: ReviewPanel,
@@ -3173,6 +3312,7 @@
           // Waveform + drawer
           Waveform.init();
           Drawer.init();
+          this.initSpeakerToolbar();
 
           // Initialize skip options
           const skipContainer = document.getElementById('skipOptionsContainer');
