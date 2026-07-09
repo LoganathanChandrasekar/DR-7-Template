@@ -4392,12 +4392,13 @@
              Form.flushToStore();
              const data = this.buildExportData();
              const conversationId = CFG.conversationId;
-             let txt = `Conversation ID: ${conversationId}\n`;
-             txt += `Total Segments: ${data.segments.length} | Total Duration: ${this.getDur()}\n`;
+             let txt = `Total Segments: ${data.segments.length} | Total Duration: ${this.getDur()}\n`;
              txt += `========================================\n\n`;
              
              data.segments.forEach(s => {
                 txt += `Segment ${s.segmentId} | Turn ${s.turnNumber} | Speaker: ${s.speakerLabel}\n`;
+                txt += `Conversation ID: ${s.conversationId}\n`;
+                txt += `Start Time: ${s.startTime} | End Time: ${s.endTime}\n`;
                 txt += `Domain: ${s.domain} | Modality: ${s.modality}\n`;
                 txt += `Source (${s.sourceLocale}): ${s.sourceTranscription}\n`;
                 txt += `Target (${s.targetLocale}): ${s.targetTranslation}\n`;
