@@ -321,19 +321,40 @@
       min-height: 0;
     }
 
-    /* ─── SCROLLBAR (HIDDEN BUT SCROLLABLE) ─────────────── */
+    /* ─── CUSTOM SCROLLBARS ─────────────── */
     * {
       scrollbar-width: none;
-      /* Firefox */
-      -ms-overflow-style: none;
-      /* IE and Edge */
     }
 
     ::-webkit-scrollbar {
       display: none;
-      /* Chrome, Safari and Opera */
-      width: 0px;
-      height: 0px;
+    }
+
+    #timelineScrollContainer {
+      scrollbar-width: auto;
+    }
+
+    #timelineScrollContainer::-webkit-scrollbar {
+      display: block;
+      width: 12px;
+      height: 12px;
+    }
+
+    #timelineScrollContainer::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    #timelineScrollContainer::-webkit-scrollbar-thumb {
+      background-color: #94a3b8;
+      border-radius: 6px;
+      border: 3px solid #f1f5f9;
+      background-clip: padding-box;
+      min-width: 40px;
+    }
+
+    #timelineScrollContainer::-webkit-scrollbar-thumb:hover {
+      background-color: #64748b;
     }
 
     /* ─── SEGMENT PANEL (div1) ───────────────────────────── */
@@ -1196,7 +1217,7 @@
     }
 
     .lbl-right {
-      display: none;
+      display: flex;
     }
 
     .lang-badge {
@@ -1792,6 +1813,7 @@
       value="{{ task.input.annotations | default: '[]' | escape }}">
     <input type="hidden" name="progress_status" id="progress_status" value="in-progress">
     <input type="hidden" name="audio_url" id="audioUrl_output" value="{{ task.input.audioUrl | default: '' }}">
+    <input type="hidden" name="conversation_id" id="out_conversation_id" value="{{ task.input.conversationId | default: '' | escape }}">
     <!-- Metadata mirror fields (for AWS validation pass-through) -->
     <input type="hidden" name="source_locale" id="out_src_locale">
     <input type="hidden" name="target_locale" id="out_tgt_locale">
@@ -1886,6 +1908,7 @@
 
                 <!-- Read-only header bar -->
                 <div class="form-hdr-bar">
+                  <div class="form-hdr-item">Conversation ID <strong id="fhConvId"></strong></div>
                   <div class="form-hdr-item">Segment <strong id="fhId">#0001</strong></div>
                   <div style="display:none"><strong id="fhSeg">001</strong></div>
                   <div class="form-hdr-item">Turn <strong id="fhTurn">01</strong></div>
@@ -2351,6 +2374,25 @@
                          <option value="Technology">Technology</option>
                        </select>
                      </div>
+                     <div class="filter-field">
+                       <label class="filter-label">MODALITY</label>
+                       <select name="filter_ignore_mod" class="filter-select" id="flt_mod">
+                         <option value="All">All Modalities</option>
+                         <option value="Direct AST">Direct AST</option>
+                         <option value="Conversational Bidirectional">Conversational Bidirectional</option>
+                         <option value="Monologue">Monologue</option>
+                         <option value="Interview">Interview</option>
+                       </select>
+                     </div>
+                     <div class="filter-field">
+                       <label class="filter-label">DIRECTION</label>
+                       <select name="filter_ignore_dir" class="filter-select" id="flt_dir">
+                         <option value="All">All Directions</option>
+                         <option value="Source to Target">Source → Target</option>
+                         <option value="Target to Source">Target → Source</option>
+                         <option value="Bidirectional">Bidirectional</option>
+                       </select>
+                     </div>
                    </div>
                    <div class="filter-popup-footer">
                      <button type="button" class="filter-btn-reset" onclick="DR7.filter.reset()">Reset</button>
@@ -2482,20 +2524,34 @@
       // Set to the WAV filename relative to the HTML file, or a full URL.
       const urlParams = new URLSearchParams(window.location.search);
       const urlAudio = urlParams.get('audio');
-      const LOCAL_DEV_AUDIO = urlAudio || 'G2936_S0001_comfortable_slow_male.wav';
+      const LOCAL_DEV_AUDIO = urlAudio || 'VID_20260328_134136_401_30min.wav';
 
-      const _liquidAudioUrl = '{{ task.input.audioUrl | default: "" }}';
-      // If Liquid was NOT processed (raw '{{...}}' string), fall back to local dev audio.
-      const _isLiquidRaw = _liquidAudioUrl.trim().startsWith('{');
+      // Detect un-rendered Liquid (local dev mode). Build the marker via concatenation 
+      // so the platform's Liquid renderer doesn't treat THIS line as a tag too.
+      const UNRENDERED_MARKER = "{" + "{";
+
+      // Helper to safely get value or fallback if Liquid was not processed or empty
+      const getVal = (val, defaultVal) => val.includes(UNRENDERED_MARKER) || !val.trim() ? defaultVal : val.trim();
+      
+      const _generateId = () => 'CONV_' + Math.random().toString(16).substring(2, 14);
+
+      // Load audio using grant_read_access (presigned S3 URL)
+      // Fallback from taskObject -> audioUrl -> LOCAL_DEV_AUDIO
+      let audioSrc = "{{ task.input.taskObject | grant_read_access }}";
+      if (audioSrc.includes(UNRENDERED_MARKER) || !audioSrc || audioSrc.trim() === "") {
+          let fallbackAudio = "{{ task.input.audioUrl | grant_read_access }}";
+          audioSrc = fallbackAudio.includes(UNRENDERED_MARKER) || !fallbackAudio.trim() ? LOCAL_DEV_AUDIO : fallbackAudio.trim();
+      }
 
       const CFG = {
-        audioUrl: _isLiquidRaw ? LOCAL_DEV_AUDIO : (_liquidAudioUrl.trim() || LOCAL_DEV_AUDIO),
-        srcLocale: '{{ task.input.sourceLocale   | default: "en-US" }}',
-        tgtLocale: '{{ task.input.targetLocale   | default: "fr-FR" }}',
-        speakerLabel: '{{ task.input.speakerLabel   | default: "Agent" }}',
-        domain: '{{ task.input.domain         | default: "General" }}',
-        modality: '{{ task.input.modality       | default: "Direct AST" }}',
-        direction: '{{ task.input.direction      | default: "Source to Target" }}',
+        audioUrl: audioSrc,
+        conversationId: getVal('{{ task.input.conversationId | escape }}', _generateId()),
+        srcLocale: getVal('{{ task.input.sourceLocale | escape }}', 'en-US'),
+        tgtLocale: getVal('{{ task.input.targetLocale | escape }}', 'fr-FR'),
+        speakerLabel: getVal('{{ task.input.speakerLabel | escape }}', 'Agent'),
+        domain: getVal('{{ task.input.domain | escape }}', 'General'),
+        modality: getVal('{{ task.input.modality | escape }}', 'Direct AST'),
+        direction: getVal('{{ task.input.direction | escape }}', 'Source to Target'),
         savedJson: document.getElementById('annotations_output').value || '[]',
         COLORS: ['#5f45ff', '#10b981', '#f59e0b', '#ef4444', '#06b6d4',
           '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#84cc16',
@@ -2507,6 +2563,17 @@
         let segments = [];
         let activeId = null;
         let _nextSegNum = 1;
+
+        function _reindex() {
+          segments.sort((a, b) => a.startTime - b.startTime);
+          segments.forEach((seg, idx) => {
+             const sNum = idx + 1;
+             seg.segmentNumber = sNum;
+             seg.turnNumber = sNum;
+             seg.color = CFG.COLORS[(sNum - 1) % CFG.COLORS.length];
+          });
+          _nextSegNum = segments.length + 1;
+        }
 
         function _serialize() {
           const json = JSON.stringify(segments);
@@ -2552,9 +2619,9 @@
           init(jsonStr) {
             try {
               const arr = JSON.parse(jsonStr || '[]');
-              if (Array.isArray(arr) && arr.length) {
+              if (Array.isArray(arr)) {
                 segments = arr;
-                _nextSegNum = Math.max(...arr.map(s => s.segmentNumber || 0)) + 1;
+                _reindex();
               }
             } catch (e) { segments = []; }
           },
@@ -2564,6 +2631,7 @@
             const sNum = _nextSegNum++;
             const seg = {
               id: 'seg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+              conversationId: CFG.conversationId.startsWith('CONV_') ? 'CONV_' + Math.random().toString(16).substring(2, 14) : CFG.conversationId,
               segmentNumber: sNum,
               turnNumber: sNum,
               startTime: +startTime.toFixed(4),
@@ -2586,6 +2654,7 @@
               updatedAt: new Date().toISOString(),
             };
             segments.push(seg);
+            _reindex();
             _serialize();
             return seg;
           },
@@ -2599,14 +2668,20 @@
             const s = this.get(id);
             if (!s) return false;
             Object.assign(s, patch, { updatedAt: new Date().toISOString() });
+            if (patch.startTime !== undefined || patch.endTime !== undefined) {
+               _reindex();
+            }
             _serialize();
             return true;
           },
 
           remove(id) {
+            console.log(`[Store.remove] Attempting to remove id: ${id}. Current segments:`, segments.map(s => s.id));
             segments = segments.filter(s => s.id !== id);
             if (activeId === id) activeId = null;
+            _reindex();
             _serialize();
+            console.log(`[Store.remove] Segments after filter:`, segments.length);
           },
 
           setActive(id) { activeId = id; },
@@ -2631,6 +2706,8 @@
               if (f.targetLocale && f.targetLocale !== 'All' && s.targetLocale !== f.targetLocale) return false;
               if (f.speakerLabel && f.speakerLabel !== 'All' && s.speakerLabel !== f.speakerLabel) return false;
               if (f.domain && f.domain !== 'All' && s.domain !== f.domain) return false;
+              if (f.modality && f.modality !== 'All' && s.modality !== f.modality) return false;
+              if (f.direction && f.direction !== 'All' && s.direction !== f.direction) return false;
               return true;
             });
           }
@@ -2660,7 +2737,11 @@
           dpr = window.devicePixelRatio || 1;
 
           const baseW = scrollWrap ? scrollWrap.clientWidth : area.clientWidth;
-          const aw = Math.floor(baseW * zoomScale);
+          const MIN_PX_PER_SEC = 50;
+          let aw = Math.floor(baseW * zoomScale);
+          if (duration > 0 && (duration * MIN_PX_PER_SEC * zoomScale) > aw) {
+             aw = Math.floor(duration * MIN_PX_PER_SEC * zoomScale);
+          }
           const rh = ruler.clientHeight;
           const ah = scrollWrap ? Math.max(0, scrollWrap.clientHeight - rh) : area.clientHeight;
 
@@ -2698,8 +2779,9 @@
           const minPx = 55;
           const rawStep = duration / (totalW / minPx);
           const steps = [0.1, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300];
-          const step = steps.find(s => s >= rawStep) || 300;
-          const majorEvery = 5;
+          // User requested exactly 1 second intervals for the timeline
+          const step = 1;
+          const majorEvery = 1;
 
           rCtx.font = '10px Inter,sans-serif';
           rCtx.textAlign = 'center';
@@ -2844,7 +2926,9 @@
             let peak = 0;
             // Cap internal loop to remaining samples to avoid OOB
             const limit = Math.min(samplesPerBar, data.length - base);
-            for (let j = 0; j < limit; j++) {
+            // Optimization: check at most 100 samples per bar to prevent severe lag on large audio
+            const stride = Math.max(1, Math.floor(limit / 100));
+            for (let j = 0; j < limit; j += stride) {
               const v = Math.abs(data[base + j] || 0);
               if (v > peak) peak = v;
             }
@@ -2942,7 +3026,7 @@
             if (channelData) channelData.maxPeak = max;
             draw();
           },
-          setDuration(d) { duration = d; drawRuler(); draw(); },
+          setDuration(d) { duration = d; resize(); },
           setPlayhead(r) { pRatio = r; },
           draw, drawRuler,
           setZoom(dz) {
@@ -2957,10 +3041,25 @@
               if (txt) txt.textContent = '100%';
               resize();
           },
-          getPlayheadX() { return pRatio * _W(wCanvas); },
-          xToTime(x) { return duration ? (x / _W(wCanvas)) * duration : 0; },
-          timeToX(t) { return duration ? (t / duration) * _W(wCanvas) : 0; },
-          getW() { return _W(wCanvas); },
+          getPlayheadX() { 
+             const contentEl = document.getElementById('timelineContentWidth');
+             const totalW = contentEl ? contentEl.clientWidth : _W(wCanvas);
+             return pRatio * totalW; 
+          },
+          xToTime(x) { 
+             const contentEl = document.getElementById('timelineContentWidth');
+             const totalW = contentEl ? contentEl.clientWidth : _W(wCanvas);
+             return duration ? (x / totalW) * duration : 0; 
+          },
+          timeToX(t) { 
+             const contentEl = document.getElementById('timelineContentWidth');
+             const totalW = contentEl ? contentEl.clientWidth : _W(wCanvas);
+             return duration ? (t / duration) * totalW : 0; 
+          },
+          getW() { 
+             const contentEl = document.getElementById('timelineContentWidth');
+             return contentEl ? contentEl.clientWidth : _W(wCanvas);
+          },
           getDuration() { return duration; },
         };
       })();
@@ -3025,26 +3124,32 @@
           const t = Waveform.xToTime(x);
           AudioCtrl.seek(t);
         }
+        let _moveRAF = null;
         function move(e) {
           if (!self.active) return;
           if (e.cancelable) e.preventDefault();
           const el = document.getElementById('waveArea');
           self.cx = getX(e, el);
-          if (mode === 'resize') {
-            const t = Waveform.xToTime(self.cx);
-            const seg = Store.get(resizeSegId);
-            if (seg) {
-               if (resizeEdge === 'start') {
-                  const newStart = Math.min(t, seg.endTime - 0.05);
-                  Store.update(resizeSegId, { startTime: +newStart.toFixed(4) });
-               } else {
-                  const newEnd = Math.max(t, seg.startTime + 0.05);
-                  Store.update(resizeSegId, { endTime: +newEnd.toFixed(4) });
-               }
-               SegPanel.render();
+          
+          if (_moveRAF) return;
+          _moveRAF = requestAnimationFrame(() => {
+            _moveRAF = null;
+            if (mode === 'resize') {
+              const t = Waveform.xToTime(self.cx);
+              const seg = Store.get(resizeSegId);
+              if (seg) {
+                 if (resizeEdge === 'start') {
+                    const newStart = Math.min(t, seg.endTime - 0.05);
+                    Store.update(resizeSegId, { startTime: +newStart.toFixed(4) });
+                 } else {
+                    const newEnd = Math.max(t, seg.startTime + 0.05);
+                    Store.update(resizeSegId, { endTime: +newEnd.toFixed(4) });
+                 }
+                 SegPanel.render();
+              }
             }
-          }
-          Waveform.draw();
+            Waveform.draw();
+          });
         }
         function up(e) {
           if (!self.active) return;
@@ -3116,6 +3221,8 @@
         }
 
         function _updateProgress(ratio) {
+          const waveArea = document.getElementById('waveArea');
+          if (!waveArea) return;
           const w = waveArea.offsetWidth;
           const px = w * ratio;
           document.getElementById('playheadOverlay').style.left = px + 'px';
@@ -3213,11 +3320,14 @@
             player.addEventListener('timeupdate', () => {
               const d = player.duration || 1;
               Waveform.setPlayhead(player.currentTime / d);
-              Waveform.draw();
               fmtDisplay();
+            });
+            player.addEventListener('seeked', () => {
+              Waveform.draw();
             });
             player.addEventListener('ended', () => {
               playing = false; updateIcons();
+              Waveform.draw();
               _updateProgress(1);
             });
             player.addEventListener('canplaythrough', () => {
@@ -3281,7 +3391,7 @@
 
             _initPlayheadDrag();
             player.addEventListener('play', () => { playing = true; updateIcons(); });
-            player.addEventListener('pause', () => { playing = false; updateIcons(); });
+            player.addEventListener('pause', () => { playing = false; updateIcons(); Waveform.draw(); });
             
             const scroller = document.getElementById('timelineScrollContainer');
             if (scroller) {
@@ -3461,6 +3571,7 @@
           document.getElementById('fhId').textContent = '#' + sn;
           document.getElementById('fhSeg').textContent = sn;
           document.getElementById('fhTurn').textContent = tn;
+          document.getElementById('fhConvId').textContent = seg.conversationId || CFG.conversationId;
           document.getElementById('fhPair').textContent =
             seg.sourceLocale.toUpperCase() + ' → ' + seg.targetLocale.toUpperCase();
           document.getElementById('fhTime').textContent =
@@ -3651,6 +3762,8 @@
                       <div class="meta-tag src">Source: ${seg.sourceLocale.split('-')[0].toUpperCase()}</div>
                       <div class="meta-tag tgt">Target: ${seg.targetLocale.split('-')[0].toUpperCase()}</div>
                       <div class="meta-tag">Domain: ${seg.domain}</div>
+                      <div class="meta-tag">Modality: ${seg.modality || '-'}</div>
+                      <div class="meta-tag">Dir: ${seg.direction === 'Source to Target' ? 'Source → Target' : (seg.direction === 'Target to Source' ? 'Target → Source' : seg.direction)}</div>
                    </div>
                 </td>
              `;
@@ -3725,7 +3838,7 @@
              this.showModal('delete');
           },
           confirmDelete() {
-             const id = this.pendingAction.split('_')[1];
+             const id = this.pendingAction.substring(7); // Removes 'delete_' prefix
              this.hideModals();
              
              Store.remove(id);
@@ -3908,6 +4021,8 @@
                 targetLocale: document.getElementById('flt_tgt').value,
                 speakerLabel: document.getElementById('flt_spk').value,
                 domain: document.getElementById('flt_dom').value,
+                modality: document.getElementById('flt_mod') ? document.getElementById('flt_mod').value : 'All',
+                direction: document.getElementById('flt_dir') ? document.getElementById('flt_dir').value : 'All',
              };
              
              let activeCount = 0;
@@ -3919,6 +4034,8 @@
              if (f.targetLocale !== 'All') activeCount++;
              if (f.speakerLabel !== 'All') activeCount++;
              if (f.domain !== 'All') activeCount++;
+             if (f.modality !== 'All') activeCount++;
+             if (f.direction !== 'All') activeCount++;
              
              if (activeCount > 0) {
                  Store.setFilters(f);
@@ -3945,6 +4062,8 @@
              document.getElementById('flt_tgt').value = 'All';
              document.getElementById('flt_spk').value = 'All';
              document.getElementById('flt_dom').value = 'All';
+             if (document.getElementById('flt_mod')) document.getElementById('flt_mod').value = 'All';
+             if (document.getElementById('flt_dir')) document.getElementById('flt_dir').value = 'All';
              
              Store.setFilters(null);
              document.getElementById('filterBadge').style.display = 'none';
@@ -4058,6 +4177,8 @@
         async init() {
           // Restore saved annotations
           Store.init(CFG.savedJson);
+          
+          if (document.getElementById('fhConvId')) document.getElementById('fhConvId').textContent = CFG.conversationId;
 
           // Waveform + drawer
           Waveform.init();
@@ -4191,35 +4312,33 @@
              return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
           },
           buildExportData() {
-             const conversationId = "{{ task.input.conversationId }}".includes("task.input") ? "local_dev" : "{{ task.input.conversationId }}";
+             const isLocalFallback = CFG.conversationId.startsWith('CONV_');
              const segments = Store.getAll().map(s => {
+                let cid = s.conversationId;
+                if (!cid) {
+                    cid = isLocalFallback ? 'CONV_' + Math.random().toString(16).substring(2, 14) : CFG.conversationId;
+                    s.conversationId = cid;
+                    Store.update(s.id, { conversationId: cid });
+                }
                 return {
+                   conversationId: cid,
                    segmentId: String(s.segmentNumber).padStart(3, '0'),
                    turnNumber: String(s.turnNumber).padStart(2, '0'),
                    speakerLabel: s.speakerLabel,
-                   startTime: s.startTime,
-                   endTime: s.endTime,
+                   startTime: this.fmtTime(s.startTime),
+                   endTime: this.fmtTime(s.endTime),
                    sourceLocale: s.sourceLocale,
                    targetLocale: s.targetLocale,
                    sourceTranscription: s.sourceText || "",
                    targetTranslation: s.targetText || "",
                    translationDirection: s.direction,
                    codeSwitchPresent: s.codeSwitch === 'yes',
-                   contextDependency: s.contextDependency === 'yes'
+                   contextDependency: s.contextDependency === 'yes',
+                   domain: s.domain,
+                   modality: s.modality
                 };
              });
-             return {
-                conversationId,
-                languagePair: {
-                   source: document.getElementById('out_src_locale') ? document.getElementById('out_src_locale').value : "All",
-                   target: document.getElementById('out_tgt_locale') ? document.getElementById('out_tgt_locale').value : "All"
-                },
-                domain: document.getElementById('out_domain') ? document.getElementById('out_domain').value : "All",
-                modality: document.getElementById('out_modality') ? document.getElementById('out_modality').value : "All",
-                totalSegments: segments.length,
-                totalDuration: this.getDur(),
-                segments
-             };
+             return { segments };
           },
           downloadFile(filename, content, type) {
              const blob = new Blob([content], { type });
@@ -4235,41 +4354,40 @@
           exportFullJson() {
              Form.flushToStore();
              const data = this.buildExportData();
-             this.downloadFile(`conversation_${data.conversationId}_export.json`, JSON.stringify(data, null, 2), 'application/json');
+             const conversationId = CFG.conversationId;
+             this.downloadFile(`conversation_${conversationId}_export.json`, JSON.stringify(data, null, 2), 'application/json');
              if(typeof toast !== 'undefined') toast('Exported successfully', 'success');
           },
           exportMetadata() {
              Form.flushToStore();
              const data = this.buildExportData();
+             const conversationId = CFG.conversationId;
              const metadataOnly = data.segments.map(s => {
                 const { sourceTranscription, targetTranslation, ...meta } = s;
                 return meta;
              });
-             const out = {
-                conversationId: data.conversationId,
-                segmentsMetadata: metadataOnly
-             };
-             this.downloadFile(`conversation_${data.conversationId}_metadata.json`, JSON.stringify(out, null, 2), 'application/json');
+             const out = { segments: metadataOnly };
+             this.downloadFile(`conversation_${conversationId}_metadata.json`, JSON.stringify(out, null, 2), 'application/json');
              if(typeof toast !== 'undefined') toast('Metadata exported successfully', 'success');
           },
           exportTxt() {
              Form.flushToStore();
              const data = this.buildExportData();
-             let txt = `Conversation ID: ${data.conversationId}\n`;
-             txt += `Language Pair: ${data.languagePair.source} -> ${data.languagePair.target}\n`;
-             txt += `Domain: ${data.domain} | Modality: ${data.modality}\n`;
-             txt += `Total Segments: ${data.totalSegments} | Total Duration: ${data.totalDuration}\n`;
+             const conversationId = CFG.conversationId;
+             let txt = `Conversation ID: ${conversationId}\n`;
+             txt += `Total Segments: ${data.segments.length} | Total Duration: ${this.getDur()}\n`;
              txt += `========================================\n\n`;
              
              data.segments.forEach(s => {
                 txt += `Segment ${s.segmentId} | Turn ${s.turnNumber} | Speaker: ${s.speakerLabel}\n`;
+                txt += `Domain: ${s.domain} | Modality: ${s.modality}\n`;
                 txt += `Source (${s.sourceLocale}): ${s.sourceTranscription}\n`;
                 txt += `Target (${s.targetLocale}): ${s.targetTranslation}\n`;
                 const dir = s.translationDirection === 'Source → Target' ? 'Source -> Target' : (s.translationDirection === 'Target → Source' ? 'Target -> Source' : s.translationDirection);
                 txt += `Direction: ${dir} | Code-Switch: ${s.codeSwitchPresent ? 'Yes' : 'No'} | Context Dependency: ${s.contextDependency ? 'Yes' : 'No'}\n`;
                 txt += `----------------------------------------\n\n`;
              });
-             this.downloadFile(`conversation_${data.conversationId}_export.txt`, txt, 'text/plain');
+             this.downloadFile(`conversation_${conversationId}_export.txt`, txt, 'text/plain');
              if(typeof toast !== 'undefined') toast('TXT exported successfully', 'success');
           },
           importJson(e) {
@@ -4279,8 +4397,8 @@
              reader.onload = (ev) => {
                 try {
                    const data = JSON.parse(ev.target.result);
-                   if (!data.conversationId || !Array.isArray(data.segments)) {
-                      if(typeof toast !== 'undefined') toast('Invalid JSON file — missing conversationId or segments array', 'error');
+                   if (!Array.isArray(data.segments)) {
+                      if(typeof toast !== 'undefined') toast('Invalid JSON file — missing segments array', 'error');
                       return;
                    }
                    
@@ -4301,9 +4419,9 @@
                          direction: s.translationDirection,
                          codeSwitch: s.codeSwitchPresent ? 'yes' : 'no',
                          contextDependency: s.contextDependency ? 'yes' : 'no',
-                         color: DR7.speakerColors[s.speakerLabel] || CFG.COLORS[0],
-                         domain: data.domain,
-                         modality: data.modality,
+                         color: (typeof DR7 !== 'undefined' && DR7.speakerColors && DR7.speakerColors[s.speakerLabel]) ? DR7.speakerColors[s.speakerLabel] : CFG.COLORS[0],
+                         domain: s.domain || CFG.domain,
+                         modality: s.modality || CFG.modality,
                          isHidden: false
                       });
                    });
@@ -4314,16 +4432,16 @@
                    Store.serialize();
                    
                    // Update Global Meta if available
-                   if (document.getElementById('meta_domain')) document.getElementById('meta_domain').value = data.domain;
-                   if (document.getElementById('meta_modality')) document.getElementById('meta_modality').value = data.modality;
-                   if (document.getElementById('meta_src')) document.getElementById('meta_src').value = data.languagePair.source;
-                   if (document.getElementById('meta_tgt')) document.getElementById('meta_tgt').value = data.languagePair.target;
+                   if (items.length > 0) {
+                       if (document.getElementById('meta_domain')) document.getElementById('meta_domain').value = items[items.length-1].domain;
+                       if (document.getElementById('meta_modality')) document.getElementById('meta_modality').value = items[items.length-1].modality;
+                   }
                    
                    // Force full UI re-render
-                   Waveform.draw();
-                   SegPanel.render();
-                   ReviewPanel.render();
-                   Form.load(null); // clears details panel
+                   if(typeof Waveform !== 'undefined') Waveform.draw();
+                   if(typeof SegPanel !== 'undefined') SegPanel.render();
+                   if(typeof ReviewPanel !== 'undefined') ReviewPanel.render();
+                   if(typeof Form !== 'undefined') Form.load(null); // clears details panel
                    
                    if(typeof toast !== 'undefined') toast(`Import complete — ${items.length} segments restored`, 'success');
                    
