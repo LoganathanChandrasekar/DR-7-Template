@@ -87,6 +87,30 @@
       gap: 10px;
     }
 
+    .hdr-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid #cbd5e1;
+      background: transparent;
+      border-radius: 4px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .hdr-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    .hdr-btn .material-icons-outlined {
+      font-size: 16px;
+    }
+
     .hdr-logo {
       width: 28px;
       height: 28px;
@@ -1671,6 +1695,19 @@
     <header class="dr7-header">
       <div class="hdr-left">
         <crowd-button form-action="submit" variant="primary" id="submitBtn">Submit</crowd-button>
+        <button type="button" class="hdr-btn" onclick="DR7.io.exportFullJson()">
+          <span class="material-icons-outlined">download</span> Export JSON
+        </button>
+        <button type="button" class="hdr-btn" onclick="document.getElementById('importFile').click()">
+          <span class="material-icons-outlined">upload</span> Import JSON
+        </button>
+        <input type="file" id="importFile" name="import_file_ignore" accept=".json" style="display:none;" onchange="DR7.io.importJson(event)">
+        <button type="button" class="hdr-btn" onclick="DR7.io.exportMetadata()">
+          Metadata Export
+        </button>
+        <button type="button" class="hdr-btn" onclick="DR7.io.exportTxt()">
+          TXT Export
+        </button>
       </div>
     </header>
 
@@ -3843,6 +3880,168 @@
             if (document.visibilityState === 'hidden') { Form.flushToStore(); Store.serialize(); }
           });
           window.addEventListener('beforeunload', () => { Form.flushToStore(); Store.serialize(); });
+        },
+
+        // ── IO (Export & Import) ──────────────────────────────────
+        io: {
+          fmtTime(sec) {
+             const m = Math.floor(sec / 60);
+             const s = Math.floor(sec % 60);
+             return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+          },
+          getDur() {
+             const d = (typeof Waveform !== 'undefined') ? Waveform.getDuration() : 0;
+             const h = Math.floor(d / 3600);
+             const m = Math.floor((d % 3600) / 60);
+             const s = Math.floor(d % 60);
+             return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
+          },
+          buildExportData() {
+             const conversationId = "{{ task.input.conversationId }}".includes("task.input") ? "local_dev" : "{{ task.input.conversationId }}";
+             const segments = Store.getAll().map(s => {
+                return {
+                   segmentId: String(s.segmentNumber).padStart(3, '0'),
+                   turnNumber: String(s.turnNumber).padStart(2, '0'),
+                   speakerLabel: s.speakerLabel,
+                   startTime: s.startTime,
+                   endTime: s.endTime,
+                   sourceLocale: s.sourceLocale,
+                   targetLocale: s.targetLocale,
+                   sourceTranscription: s.sourceText || "",
+                   targetTranslation: s.targetText || "",
+                   translationDirection: s.direction,
+                   codeSwitchPresent: s.codeSwitch === 'yes',
+                   contextDependency: s.contextDependency === 'yes'
+                };
+             });
+             return {
+                conversationId,
+                languagePair: {
+                   source: document.getElementById('out_src_locale') ? document.getElementById('out_src_locale').value : "All",
+                   target: document.getElementById('out_tgt_locale') ? document.getElementById('out_tgt_locale').value : "All"
+                },
+                domain: document.getElementById('out_domain') ? document.getElementById('out_domain').value : "All",
+                modality: document.getElementById('out_modality') ? document.getElementById('out_modality').value : "All",
+                totalSegments: segments.length,
+                totalDuration: this.getDur(),
+                segments
+             };
+          },
+          downloadFile(filename, content, type) {
+             const blob = new Blob([content], { type });
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = filename;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+          },
+          exportFullJson() {
+             Form.flushToStore();
+             const data = this.buildExportData();
+             this.downloadFile(`conversation_${data.conversationId}_export.json`, JSON.stringify(data, null, 2), 'application/json');
+             if(typeof toast !== 'undefined') toast('Exported successfully', 'success');
+          },
+          exportMetadata() {
+             Form.flushToStore();
+             const data = this.buildExportData();
+             const metadataOnly = data.segments.map(s => {
+                const { sourceTranscription, targetTranslation, ...meta } = s;
+                return meta;
+             });
+             const out = {
+                conversationId: data.conversationId,
+                segmentsMetadata: metadataOnly
+             };
+             this.downloadFile(`conversation_${data.conversationId}_metadata.json`, JSON.stringify(out, null, 2), 'application/json');
+             if(typeof toast !== 'undefined') toast('Metadata exported successfully', 'success');
+          },
+          exportTxt() {
+             Form.flushToStore();
+             const data = this.buildExportData();
+             let txt = `Conversation ID: ${data.conversationId}\n`;
+             txt += `Language Pair: ${data.languagePair.source} -> ${data.languagePair.target}\n`;
+             txt += `Domain: ${data.domain} | Modality: ${data.modality}\n`;
+             txt += `Total Segments: ${data.totalSegments} | Total Duration: ${data.totalDuration}\n`;
+             txt += `========================================\n\n`;
+             
+             data.segments.forEach(s => {
+                txt += `Segment ${s.segmentId} | Turn ${s.turnNumber} | Speaker: ${s.speakerLabel}\n`;
+                txt += `Source (${s.sourceLocale}): ${s.sourceTranscription}\n`;
+                txt += `Target (${s.targetLocale}): ${s.targetTranslation}\n`;
+                const dir = s.translationDirection === 'Source → Target' ? 'Source -> Target' : (s.translationDirection === 'Target → Source' ? 'Target -> Source' : s.translationDirection);
+                txt += `Direction: ${dir} | Code-Switch: ${s.codeSwitchPresent ? 'Yes' : 'No'} | Context Dependency: ${s.contextDependency ? 'Yes' : 'No'}\n`;
+                txt += `----------------------------------------\n\n`;
+             });
+             this.downloadFile(`conversation_${data.conversationId}_export.txt`, txt, 'text/plain');
+             if(typeof toast !== 'undefined') toast('TXT exported successfully', 'success');
+          },
+          importJson(e) {
+             const file = e.target.files[0];
+             if (!file) return;
+             const reader = new FileReader();
+             reader.onload = (ev) => {
+                try {
+                   const data = JSON.parse(ev.target.result);
+                   if (!data.conversationId || !Array.isArray(data.segments)) {
+                      if(typeof toast !== 'undefined') toast('Invalid JSON file — missing conversationId or segments array', 'error');
+                      return;
+                   }
+                   
+                   // Reconstruct internal store state
+                   const items = [];
+                   data.segments.forEach(s => {
+                      items.push({
+                         id: 'S' + Math.random().toString(36).substr(2, 9),
+                         segmentNumber: parseInt(s.segmentId, 10),
+                         turnNumber: parseInt(s.turnNumber, 10),
+                         startTime: s.startTime,
+                         endTime: s.endTime,
+                         sourceLocale: s.sourceLocale,
+                         targetLocale: s.targetLocale,
+                         speakerLabel: s.speakerLabel,
+                         sourceText: s.sourceTranscription,
+                         targetText: s.targetTranslation,
+                         direction: s.translationDirection,
+                         codeSwitch: s.codeSwitchPresent ? 'yes' : 'no',
+                         contextDependency: s.contextDependency ? 'yes' : 'no',
+                         color: DR7.speakerColors[s.speakerLabel] || CFG.COLORS[0],
+                         domain: data.domain,
+                         modality: data.modality,
+                         isHidden: false
+                      });
+                   });
+                   
+                   // Clear and reset Store
+                   Store.setActive(null);
+                   Store.init(JSON.stringify(items));
+                   Store.serialize();
+                   
+                   // Update Global Meta if available
+                   if (document.getElementById('meta_domain')) document.getElementById('meta_domain').value = data.domain;
+                   if (document.getElementById('meta_modality')) document.getElementById('meta_modality').value = data.modality;
+                   if (document.getElementById('meta_src')) document.getElementById('meta_src').value = data.languagePair.source;
+                   if (document.getElementById('meta_tgt')) document.getElementById('meta_tgt').value = data.languagePair.target;
+                   
+                   // Force full UI re-render
+                   Waveform.draw();
+                   SegPanel.render();
+                   ReviewPanel.render();
+                   Form.load(null); // clears details panel
+                   
+                   if(typeof toast !== 'undefined') toast(`Import complete — ${items.length} segments restored`, 'success');
+                   
+                } catch (err) {
+                   console.error(err);
+                   if(typeof toast !== 'undefined') toast('Invalid JSON file — could not import', 'error');
+                }
+                // Reset file input so same file can be loaded again if needed
+                e.target.value = '';
+             };
+             reader.readAsText(file);
+          }
         }
       };
 
