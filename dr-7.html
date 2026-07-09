@@ -832,13 +832,37 @@
     }
     .wf-wave-area {
       flex: 1;
+      min-height: 0;
       position: relative;
       cursor: context-menu;
     }
     .wf-canvas {
+      position: sticky;
+      left: 0;
+      top: 0;
+      pointer-events: none;
+    }
+    .wf-scroll-spacer {
       position: absolute;
       top: 0;
       left: 0;
+      height: 1px;
+      pointer-events: none;
+    }
+    .wf-fallback-msg {
+      position: sticky;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 14px;
+      text-align: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+      pointer-events: none;
     }
     .wf-playhead-overlay {
       position: absolute;
@@ -2069,7 +2093,11 @@
     
                 <!-- Waveform canvas -->
                 <div class="wf-wave-area" id="waveArea">
+                  <div class="wf-scroll-spacer" id="waveScrollSpacer"></div>
                   <canvas id="waveCanvas" class="wf-canvas"></canvas>
+                  <div class="wf-fallback-msg" id="waveFallbackMsg" style="display:none;">
+                    Waveform unavailable for large audio files.<br>Audio playback and annotation remain fully functional.
+                  </div>
                   <div class="wave-loading" id="waveLoading">
                     <div class="spinner"></div>
                     <span class="wf-loading-text">Loading audio…</span>
@@ -2452,7 +2480,9 @@
       // ── CONFIG ──────────────────────────────────────────────
       // LOCAL_DEV_AUDIO: used when the Liquid tag is NOT substituted (local file:// testing).
       // Set to the WAV filename relative to the HTML file, or a full URL.
-      const LOCAL_DEV_AUDIO = 'G2936_S0001_comfortable_slow_male.wav';
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlAudio = urlParams.get('audio');
+      const LOCAL_DEV_AUDIO = urlAudio || 'G2936_S0001_comfortable_slow_male.wav';
 
       const _liquidAudioUrl = '{{ task.input.audioUrl | default: "" }}';
       // If Liquid was NOT processed (raw '{{...}}' string), fall back to local dev audio.
@@ -2611,6 +2641,7 @@
       const Waveform = (() => {
         let wCanvas, wCtx, rCanvas, rCtx;
         let channelData = null;
+        let decodeFailed = false;
         let duration = 0;
         let pRatio = 0;
         let dpr = window.devicePixelRatio || 1;
@@ -2630,15 +2661,15 @@
 
           const baseW = scrollWrap ? scrollWrap.clientWidth : area.clientWidth;
           const aw = Math.floor(baseW * zoomScale);
-          const ah = area.clientHeight;
           const rh = ruler.clientHeight;
+          const ah = scrollWrap ? Math.max(0, scrollWrap.clientHeight - rh) : area.clientHeight;
 
-          wCanvas.width = Math.floor(aw * dpr); wCanvas.height = Math.floor(ah * dpr);
-          wCanvas.style.width = aw + 'px'; wCanvas.style.height = ah + 'px';
+          wCanvas.width = Math.floor(baseW * dpr); wCanvas.height = Math.floor(ah * dpr);
+          wCanvas.style.width = baseW + 'px'; wCanvas.style.height = ah + 'px';
           wCtx.scale(dpr, dpr);
 
-          rCanvas.width = Math.floor(aw * dpr); rCanvas.height = Math.floor(rh * dpr);
-          rCanvas.style.width = aw + 'px'; rCanvas.style.height = rh + 'px';
+          rCanvas.width = Math.floor(baseW * dpr); rCanvas.height = Math.floor(rh * dpr);
+          rCanvas.style.width = baseW + 'px'; rCanvas.style.height = rh + 'px';
           rCtx.scale(dpr, dpr);
           
           document.getElementById('timelineContentWidth').style.width = aw + 'px';
@@ -2648,6 +2679,11 @@
 
         function drawRuler() {
           const W = _W(rCanvas), H = _H(rCanvas);
+          const scrollWrap = document.getElementById('timelineScrollContainer');
+          const scrollLeft = scrollWrap ? scrollWrap.scrollLeft : 0;
+          const contentEl = document.getElementById('timelineContentWidth');
+          const totalW = contentEl ? contentEl.clientWidth : W;
+          
           rCtx.clearRect(0, 0, W, H);
           rCtx.fillStyle = '#f9fafb'; rCtx.fillRect(0, 0, W, H);
           rCtx.strokeStyle = '#e4e6ed'; rCtx.lineWidth = 1;
@@ -2660,7 +2696,7 @@
           }
 
           const minPx = 55;
-          const rawStep = duration / (W / minPx);
+          const rawStep = duration / (totalW / minPx);
           const steps = [0.1, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300];
           const step = steps.find(s => s >= rawStep) || 300;
           const majorEvery = 5;
@@ -2686,8 +2722,12 @@
             return str;
           }
 
-          for (let t = 0; t <= duration + 0.001; t += step) {
-            const exactX = (t / duration) * W;
+          const tStart = (scrollLeft / totalW) * duration;
+          const tEnd = ((scrollLeft + W) / totalW) * duration;
+          const startT = Math.floor(tStart / step) * step;
+
+          for (let t = startT; t <= tEnd + step && t <= duration + 0.001; t += step) {
+            const exactX = (t / duration) * totalW - scrollLeft;
             const x = Math.floor(exactX);
             const major = Math.round(t / step) % majorEvery === 0;
             
@@ -2713,19 +2753,31 @@
         function draw() {
           if (!wCanvas) return;
           const W = _W(wCanvas), H = _H(wCanvas);
+          const scrollWrap = document.getElementById('timelineScrollContainer');
+          const scrollLeft = scrollWrap ? scrollWrap.scrollLeft : 0;
+          const contentEl = document.getElementById('timelineContentWidth');
+          const totalW = contentEl ? contentEl.clientWidth : W;
+
           wCtx.clearRect(0, 0, W, H);
 
           // background
           wCtx.fillStyle = '#f0edff';
           wCtx.fillRect(0, 0, W, H);
 
+          wCtx.save();
+          wCtx.translate(-scrollLeft, 0);
+
           // segment overlays
           if (duration > 0) {
             Store.getFiltered().forEach(seg => {
               if (seg.isHidden) return;
               
-              const x1 = (seg.startTime / duration) * W;
-              const x2 = (seg.endTime / duration) * W;
+              const x1 = (seg.startTime / duration) * totalW;
+              const x2 = (seg.endTime / duration) * totalW;
+              
+              // cull non-visible segments
+              if (x2 < scrollLeft || x1 > scrollLeft + W) return;
+
               const act = seg.id === Store.getActiveId();
 
               let baseColor = DR7.speakerColors && DR7.speakerColors[seg.speakerLabel] ? DR7.speakerColors[seg.speakerLabel] : seg.color;
@@ -2749,9 +2801,9 @@
 
           // waveform bars or placeholder
           if (channelData && channelData.length) {
-            _drawWaveSurferBars(W, H);
-          } else {
-            _drawPlaceholderBars(W, H);
+            _drawWaveSurferBars(W, H, scrollLeft, totalW);
+          } else if (!decodeFailed) {
+            _drawPlaceholderBars(W, H, scrollLeft, totalW);
           }
 
           // playhead overlay is managed via AudioCtrl timeupdate
@@ -2760,31 +2812,39 @@
           if (Drawer.active && Drawer.mode === 'draw') {
             const x1 = Math.min(Drawer.sx, Drawer.cx);
             const x2 = Math.max(Drawer.sx, Drawer.cx);
-            wCtx.fillStyle = 'rgba(95,69,255,.15)';
-            wCtx.fillRect(x1, 0, x2 - x1, H);
-            if (x2 - x1 > 0) {
-                wCtx.strokeStyle = '#5f45ff'; wCtx.lineWidth = 1.5;
-                wCtx.setLineDash([5, 3]);
-                wCtx.strokeRect(x1, 0, x2 - x1, H);
-                wCtx.setLineDash([]);
+            if (!(x2 < scrollLeft || x1 > scrollLeft + W)) {
+              wCtx.fillStyle = 'rgba(95,69,255,.15)';
+              wCtx.fillRect(x1, 0, x2 - x1, H);
+              if (x2 - x1 > 0) {
+                  wCtx.strokeStyle = '#5f45ff'; wCtx.lineWidth = 1.5;
+                  wCtx.setLineDash([5, 3]);
+                  wCtx.strokeRect(x1, 0, x2 - x1, H);
+                  wCtx.setLineDash([]);
+              }
             }
           }
+          wCtx.restore();
         }
 
         /* WaveSurfer-style: vertical bars mirrored top+bottom */
-        function _drawWaveSurferBars(W, H) {
+        function _drawWaveSurferBars(W, H, scrollLeft, totalW) {
           const data = channelData;
           const step = BAR_W + BAR_GAP;
-          const numBars = Math.floor(W / step);
-          const samplesPerBar = Math.max(1, Math.floor(data.length / numBars));
+          const numTotalBars = Math.floor(totalW / step);
+          const samplesPerBar = Math.max(1, Math.floor(data.length / numTotalBars));
           const mid = H / 2;
-          const pxLine = pRatio * W;
+          const pxLine = pRatio * totalW;
 
-          for (let i = 0; i < numBars; i++) {
+          const startBar = Math.max(0, Math.floor(scrollLeft / step));
+          const endBar = Math.min(numTotalBars, Math.ceil((scrollLeft + W) / step));
+
+          for (let i = startBar; i < endBar; i++) {
             const x = i * step;
             const base = Math.floor(i * samplesPerBar);
             let peak = 0;
-            for (let j = 0; j < samplesPerBar; j++) {
+            // Cap internal loop to remaining samples to avoid OOB
+            const limit = Math.min(samplesPerBar, data.length - base);
+            for (let j = 0; j < limit; j++) {
               const v = Math.abs(data[base + j] || 0);
               if (v > peak) peak = v;
             }
@@ -2852,6 +2912,23 @@
             rCtx = rCanvas.getContext('2d');
             resize();
             window.addEventListener('resize', () => resize());
+            const scrollWrap = document.getElementById('timelineScrollContainer');
+            if (scrollWrap) {
+               scrollWrap.addEventListener('scroll', () => {
+                 window.requestAnimationFrame(() => {
+                   draw();
+                   drawRuler();
+                 });
+               }, { passive: true });
+               
+               const ro = new ResizeObserver(() => {
+                 resize();
+               });
+               ro.observe(scrollWrap);
+            }
+          },
+          setDecodeFailed(val) {
+            decodeFailed = val;
           },
           setChannelData(d) {
             channelData = d;
@@ -4066,8 +4143,12 @@
           if (CFG.audioUrl && CFG.audioUrl.trim() !== '') {
             decodeAudio(CFG.audioUrl).then(data => {
               document.getElementById('waveLoading').classList.add('hidden');
-              if (data) Waveform.setChannelData(data);
-              else Waveform.draw(); // keep placeholder bars on decode fail
+              if (data) {
+                Waveform.setChannelData(data);
+              } else {
+                document.getElementById('waveFallbackMsg').style.display = 'flex';
+                Waveform.setDecodeFailed(true);
+              }
               Waveform.draw();
             });
           } else {
