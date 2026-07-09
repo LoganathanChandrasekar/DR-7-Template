@@ -2884,7 +2884,7 @@
           // waveform bars or placeholder
           if (channelData && channelData.length) {
             _drawWaveSurferBars(W, H, scrollLeft, totalW);
-          } else if (!decodeFailed) {
+          } else {
             _drawPlaceholderBars(W, H, scrollLeft, totalW);
           }
 
@@ -2956,30 +2956,33 @@
         }
 
         /* Placeholder bars when no audio decoded yet */
-        function _drawPlaceholderBars(W, H) {
+        function _drawPlaceholderBars(W, H, scrollLeft, totalW) {
           const step = BAR_W + BAR_GAP;
-          const numBars = Math.floor(W / step);
+          const numTotalBars = Math.floor(totalW / step);
           const mid = H / 2;
+          const pxLine = pRatio * totalW;
+          
+          const startBar = Math.max(0, Math.floor(scrollLeft / step));
+          const endBar = Math.min(numTotalBars, Math.ceil((scrollLeft + W) / step));
 
-          for (let i = 0; i < numBars; i++) {
+          for (let i = startBar; i < endBar; i++) {
             const x = i * step;
-            // pseudo-random height using sine series
-            const t = i / numBars;
-            const amp = 0.15 + 0.55 * Math.abs(
-              Math.sin(t * Math.PI * 12) * 0.5 +
-              Math.sin(t * Math.PI * 30) * 0.3 +
-              Math.sin(t * Math.PI * 7) * 0.2
+            // pseudo-random high-frequency height to simulate speech waveform
+            const amp = 0.1 + 0.7 * Math.abs(
+              Math.sin(i * 0.05) * 0.4 +
+              Math.sin(i * 0.13 + 2) * 0.3 +
+              Math.sin(i * 0.87 + 4) * 0.3
             );
-            const barH = Math.max(2, amp * mid * 0.88);
+            const barH = Math.max(2, amp * mid * 0.95);
 
-            wCtx.fillStyle = '#b5a8ff';
+            wCtx.fillStyle = x < pxLine ? '#7c65ff' : '#b5a8ff';
             wCtx.beginPath();
             wCtx.roundRect
               ? wCtx.roundRect(x, mid - barH, BAR_W, barH, [1, 1, 0, 0])
               : wCtx.rect(x, mid - barH, BAR_W, barH);
             wCtx.fill();
 
-            wCtx.fillStyle = '#cdc4ff';
+            wCtx.fillStyle = x < pxLine ? '#9b8bff' : '#cdc4ff';
             wCtx.beginPath();
             wCtx.roundRect
               ? wCtx.roundRect(x, mid, BAR_W, barH, [0, 0, 1, 1])
@@ -4262,16 +4265,27 @@
 
           // Decode real waveform
           if (CFG.audioUrl && CFG.audioUrl.trim() !== '') {
-            decodeAudio(CFG.audioUrl).then(data => {
-              document.getElementById('waveLoading').classList.add('hidden');
-              if (data) {
-                Waveform.setChannelData(data);
-              } else {
+            const tryDecode = () => {
+              if (player.duration > 1800) {
+                document.getElementById('waveLoading').classList.add('hidden');
                 document.getElementById('waveFallbackMsg').style.display = 'flex';
                 Waveform.setDecodeFailed(true);
+                Waveform.draw();
+                return;
               }
-              Waveform.draw();
-            });
+              decodeAudio(CFG.audioUrl).then(data => {
+                document.getElementById('waveLoading').classList.add('hidden');
+                if (data) {
+                  Waveform.setChannelData(data);
+                } else {
+                  document.getElementById('waveFallbackMsg').style.display = 'flex';
+                  Waveform.setDecodeFailed(true);
+                }
+                Waveform.draw();
+              });
+            };
+            if (player.readyState >= 1) { tryDecode(); }
+            else { player.addEventListener('loadedmetadata', tryDecode, { once: true }); }
           } else {
             document.getElementById('waveLoading').classList.add('hidden');
             Waveform.draw();
