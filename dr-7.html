@@ -4416,15 +4416,26 @@
                       return;
                    }
                    
+                   // Helper: convert "MM:SS" or "M:SS" string back to numeric seconds
+                   const parseMMSS = (v) => {
+                      if (typeof v === 'number') return v;
+                      if (typeof v === 'string' && v.includes(':')) {
+                         const [m, s] = v.split(':');
+                         return parseInt(m, 10) * 60 + parseFloat(s || 0);
+                      }
+                      return parseFloat(v) || 0;
+                   };
+
                    // Reconstruct internal store state
                    const items = [];
                    data.segments.forEach(s => {
                       items.push({
                          id: 'S' + Math.random().toString(36).substr(2, 9),
+                         conversationId: s.conversationId || CFG.conversationId,
                          segmentNumber: parseInt(s.segmentId, 10),
                          turnNumber: parseInt(s.turnNumber, 10),
-                         startTime: s.startTime,
-                         endTime: s.endTime,
+                         startTime: parseMMSS(s.startTime),
+                         endTime: parseMMSS(s.endTime),
                          sourceLocale: s.sourceLocale,
                          targetLocale: s.targetLocale,
                          speakerLabel: s.speakerLabel,
