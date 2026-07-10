@@ -3682,7 +3682,10 @@
         }
 
         const bad = segs.filter(s =>
-          !s.sourceText || !s.targetText || !s.codeSwitch || !s.contextDependency
+          !s.sourceText || !s.sourceText.trim() ||
+          !s.targetText || !s.targetText.trim() ||
+          (s.codeSwitch !== 'yes' && s.codeSwitch !== 'no') ||
+          (s.contextDependency !== 'yes' && s.contextDependency !== 'no')
         );
 
         if (bad.length) {
@@ -3786,7 +3789,12 @@
           validateAll() {
             const segs = Store.getAll();
             for (const s of segs) {
-              if (!s.sourceText || !s.sourceText.trim() || !s.targetText || !s.targetText.trim()) {
+              if (
+                !s.sourceText || !s.sourceText.trim() ||
+                !s.targetText || !s.targetText.trim() ||
+                (s.codeSwitch !== 'yes' && s.codeSwitch !== 'no') ||
+                (s.contextDependency !== 'yes' && s.contextDependency !== 'no')
+              ) {
                 return false;
               }
             }
