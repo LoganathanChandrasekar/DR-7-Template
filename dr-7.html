@@ -4267,7 +4267,8 @@
           // Decode real waveform
           if (CFG.audioUrl && CFG.audioUrl.trim() !== '') {
             const tryDecode = () => {
-              if (player.duration > 1800) {
+              const _player = document.getElementById('audioPlayer');
+              if (_player && _player.duration > 1800) {
                 document.getElementById('waveLoading').classList.add('hidden');
                 document.getElementById('waveFallbackMsg').style.display = 'flex';
                 Waveform.setDecodeFailed(true);
@@ -4285,8 +4286,9 @@
                 Waveform.draw();
               });
             };
-            if (player.readyState >= 1) { tryDecode(); }
-            else { player.addEventListener('loadedmetadata', tryDecode, { once: true }); }
+            const _audioEl = document.getElementById('audioPlayer');
+            if (_audioEl && _audioEl.readyState >= 1) { tryDecode(); }
+            else if (_audioEl) { _audioEl.addEventListener('loadedmetadata', tryDecode, { once: true }); }
           } else {
             document.getElementById('waveLoading').classList.add('hidden');
             Waveform.draw();
@@ -4704,7 +4706,7 @@
             const isActive = (val === currentSkip);
             const bg = isActive ? '#f3e8ff' : 'transparent';
             const color = isActive ? '#5f45ff' : '#334155';
-            return `<div onclick="if(typeof DR7 !== 'undefined'){ DR7.skipInterval=${val}; } const disp = document.getElementById('currentFrameSkipDisplay'); if(disp) disp.textContent='${val}'; const disp2 = document.getElementById('settingsFrameSkipDisplay'); if(disp2) disp2.textContent='${val}'; this.parentElement.style.display='none'; if(document.getElementById('skipIntervalMenu')) document.getElementById('skipIntervalMenu').style.display='none'; if(document.getElementById('frameSkipSubMenu')) document.getElementById('frameSkipSubMenu').style.display='none';" style="padding:4px 16px; margin:2px 6px; border-radius:4px; cursor:pointer; font-size:13px; color:${color}; background:${bg}; transition:background 0.2s;" onmouseover="if(!${isActive}) this.style.background='#f8fafc'" onmouseout="if(!${isActive}) this.style.background='transparent'">${val}</div>`;
+            return `<div onclick="if(typeof DR7 !== 'undefined'){ DR7.skipInterval=${val}; } const disp = document.getElementById('currentFrameSkipDisplay'); if(disp) disp.textContent='${val}'; const disp2 = document.getElementById('settingsFrameSkipDisplay'); if(disp2) disp2.textContent='${val}'; var _m = this.closest('#skipIntervalMenu') || this.closest('#frameSkipSubMenu'); if(_m) _m.style.display='none'; if(document.getElementById('skipIntervalMenu')) document.getElementById('skipIntervalMenu').style.display='none'; if(document.getElementById('frameSkipSubMenu')) document.getElementById('frameSkipSubMenu').style.display='none';" style="padding:4px 16px; margin:2px 6px; border-radius:4px; cursor:pointer; font-size:13px; color:${color}; background:${bg}; transition:background 0.2s;" onmouseover="if(!${isActive}) this.style.background='#f8fafc'" onmouseout="if(!${isActive}) this.style.background='transparent'">${val}</div>`;
          };
 
          for(let i=1; i<=maxOptions; i++) {
@@ -4716,6 +4718,7 @@
             }
          });
          container.innerHTML = html;
+         container.style.display = 'flex'; // always ensure container is visible
       }
 
       window.DR7ToggleFrameSkipMenu = function(e) {
@@ -4743,8 +4746,9 @@
             if(menu) {
                menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
                const optsContainer = document.getElementById('skipOptionsContainer');
-               if(menu.style.display === 'flex' && optsContainer) {
-                  populateSkipMenuOptions('skipOptionsContainer');
+               if(menu.style.display === 'flex') {
+                  if(optsContainer) optsContainer.style.display = 'flex'; // restore if hidden
+                  if(optsContainer) populateSkipMenuOptions('skipOptionsContainer');
                }
             }
          };
