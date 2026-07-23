@@ -2183,9 +2183,18 @@
                       <button type="button" class="sop-btn" title="false-start ~" onclick="DR7.sop.tagTruncate('src')">~</button>
                       <select class="sop-sel" id="sopLangSel" name="_ui_sop_lang" onchange="DR7.sop.tagLang('src', this)">
                         <option value="">lang:X</option>
+                        <option value="French">French</option>
                         <option value="English">English</option>
                         <option value="Spanish">Spanish</option>
+                        <option value="German">German</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Korean">Korean</option>
                         <option value="Foreign">Foreign</option>
+                        <option value="__custom__">Type language…</option>
                       </select>
                       <select class="sop-sel" id="sopBracketSel" name="_ui_sop_bracket" onchange="DR7.sop.tagBracket('src', this)">
                         <option value="">[tag]</option>
@@ -2232,9 +2241,18 @@
                       <button type="button" class="sop-btn" title="false-start ~" onclick="DR7.sop.tagTruncate('tgt')">~</button>
                       <select class="sop-sel" id="tgtLangSel" name="_ui_tgt_lang" onchange="DR7.sop.tagLang('tgt', this)">
                         <option value="">lang:X</option>
+                        <option value="French">French</option>
                         <option value="English">English</option>
                         <option value="Spanish">Spanish</option>
+                        <option value="German">German</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Korean">Korean</option>
                         <option value="Foreign">Foreign</option>
+                        <option value="__custom__">Type language…</option>
                       </select>
                       <select class="sop-sel" id="tgtBracketSel" name="_ui_tgt_bracket" onchange="DR7.sop.tagBracket('tgt', this)">
                         <option value="">[tag]</option>
@@ -6014,7 +6032,21 @@
         this.tagOverlap = function () { wrapSelection('tag-overlap','overlap','<overlap>'); };
         this.tagUnintel = function () { wrapSelection('tag-unintel','unintelligible','unintelligible (( ))'); };
         this.tagTruncate = function () { insertAtomic('tag-truncate','truncate','~','false-start ~'); };
-        this.tagLang = function (selEl) { var v = selEl.value; if (!v) return; wrapSelection('tag-lang','lang:'+v,'lang:'+v); selEl.selectedIndex = 0; };
+        this.tagLang = function (selEl) {
+          var v = selEl.value;
+          if (!v) return;
+          if (v === '__custom__') {
+            var typed = window.prompt('Language name (e.g. Tagalog):', '');
+            selEl.selectedIndex = 0;
+            if (typed === null) return;
+            v = typed.replace(/[^A-Za-z]/g, '');
+            if (!v) return;
+            v = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+          } else {
+            selEl.selectedIndex = 0;
+          }
+          wrapSelection('tag-lang','lang:'+v,'lang:'+v);
+        };
         this.tagBracket = function (selEl) { var v = selEl.value; if (!v) return; insertAtomic('tag-bracket','bracket','['+v+']','['+v+']'); selEl.selectedIndex = 0; };
         this.tagFiller = function (selEl) { var v = selEl.value; if (!v) return; insertAtomic('tag-filler','filler','#'+v,'#'+v); selEl.selectedIndex = 0; };
         this.removeChip = function (xBtn) {
