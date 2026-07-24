@@ -4064,7 +4064,8 @@
             meta.sourceLocale.toUpperCase() + ' → ' + meta.targetLocale.toUpperCase();
           document.getElementById('srcBadge').textContent = meta.sourceLocale.toUpperCase();
           document.getElementById('tgtBadge').textContent = meta.targetLocale.toUpperCase();
-          
+          if (typeof DR7 !== 'undefined' && DR7.syncSpeakerToolbar) DR7.syncSpeakerToolbar(meta.speakerLabel);
+
           if (typeof SegPanel !== 'undefined') SegPanel.render();
           if (typeof Waveform !== 'undefined') Waveform.draw();
         }
@@ -4144,6 +4145,7 @@
             speakerLabel: seg.speakerLabel, domain: seg.domain,
             modality: seg.modality, direction: seg.direction,
           });
+          if (typeof DR7 !== 'undefined' && DR7.syncSpeakerToolbar) DR7.syncSpeakerToolbar(seg.speakerLabel);
 
           document.getElementById('rb_cs').classList.remove('error');
           document.getElementById('rb_cd').classList.remove('error');
@@ -4439,11 +4441,12 @@
            
            group.innerHTML = '';
            const options = Array.from(select.options).map(o => o.value);
-           
+           this.speakerButtons = {};
+
            options.forEach((opt, idx) => {
                const color = CFG.COLORS[idx % CFG.COLORS.length];
                this.speakerColors[opt] = color;
-               
+
                const btn = document.createElement('button');
                btn.type = 'button';
                btn.className = 'wf-speaker-btn';
@@ -4451,13 +4454,14 @@
                btn.style.setProperty('--spk-color', color);
                btn.style.setProperty('--spk-bg', color + '15'); // 15% opacity hex
                btn.style.setProperty('--spk-border', color + '40');
-               
+
                btn.onclick = () => this.setSpeakerLabel(opt, btn);
-               
+
                if (idx === 0) {
                    this.activeSpeakerLabel = opt;
                    btn.classList.add('active');
                }
+               this.speakerButtons[opt] = btn;
                group.appendChild(btn);
            });
         },
@@ -4494,10 +4498,31 @@
            }
         },
         
+        syncSpeakerToolbar(label) {
+           document.querySelectorAll('.wf-speaker-btn').forEach(btn => btn.classList.remove('active'));
+           const btn = (this.speakerButtons && this.speakerButtons[label]) || null;
+           if (btn) btn.classList.add('active');
+        },
+
         setSpeakerLabel(label, btnEl) {
            this.activeSpeakerLabel = label;
-           document.querySelectorAll('.wf-speaker-btn').forEach(btn => btn.classList.remove('active'));
-           if (btnEl) btnEl.classList.add('active');
+           this.syncSpeakerToolbar(label);
+           if (btnEl) btnEl.classList.add('active'); // fallback in case label isn't a known option
+
+           // If a segment is currently selected, re-categorize it in place instead of
+           // only setting the default label for the next newly-drawn segment.
+           const activeId = Store.getActiveId();
+           if (!activeId) return;
+           const seg = Store.get(activeId);
+           if (!seg || seg.speakerLabel === label) return;
+
+           Store.update(activeId, { speakerLabel: label });
+           const sel = document.getElementById('meta_spk');
+           if (sel) sel.value = label;
+
+           if (typeof SegPanel !== 'undefined') SegPanel.render();
+           if (typeof Waveform !== 'undefined') Waveform.draw();
+           if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
         },
         
         filter: {
