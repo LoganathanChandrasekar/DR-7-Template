@@ -1897,7 +1897,8 @@
     }
     .meta-field label .req { color: #ef4444; margin-left: 2px; }
     .meta-field input,
-    .meta-field select {
+    .meta-field select,
+    .meta-field textarea {
       height: 38px;
       padding: 0 10px;
       border: 1px solid #d9e0ea;
@@ -1911,9 +1912,25 @@
       width: 100%;
       box-sizing: border-box;
     }
+    .meta-field textarea {
+      height: auto;
+      padding: 8px 10px;
+      resize: vertical;
+    }
     .meta-field input:focus,
-    .meta-field select:focus { border-color: #6d5bd0; }
-    .meta-field input::placeholder { color: #b6c0cc; }
+    .meta-field select:focus,
+    .meta-field textarea:focus { border-color: #6d5bd0; }
+    .meta-field input::placeholder,
+    .meta-field textarea::placeholder { color: #b6c0cc; }
+    .meta-field input:disabled,
+    .meta-field select:disabled,
+    .meta-field textarea:disabled {
+      background: #f3f4f7;
+      border-style: dashed;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+    .meta-field input:disabled::placeholder { color: #adb5bf; font-style: italic; }
     .meta-field input.meta-invalid { border-color: #ef4444; background:#fef2f2; }
     .meta-field .meta-err {
       font-size: 11px;
@@ -2367,9 +2384,9 @@
                         <label class="meta-label" for="meta_mod">Modality <span class="meta-req">*</span></label>
                         <select class="meta-select" id="meta_mod" name="meta_modality" onchange="DR7.meta.onChange()">
                           <option value="Direct AST">Direct AST</option>
+                          <option value="Cascaded S2T">Cascaded S2T</option>
                           <option value="Conversational Bidirectional">Conversational Bidirectional</option>
-                          <option value="Monologue">Monologue</option>
-                          <option value="Interview">Interview</option>
+                          <option value="Cross-Lingual Summarization">Cross-Lingual Summarization</option>
                         </select>
                       </div>
                       <div class="meta-field">
@@ -2855,12 +2872,12 @@
           <div class="meta-grid">
             <div class="meta-field col-span-3">
               <label>Modality <span class="req">*</span></label>
-              <select id="m_modality">
+              <select id="m_modality" onchange="DR7.metadata.onModalityChange()">
                 <option value="">Select modality…</option>
-                <option value="conversational_bidirectional">Conversational Bidirectional (real-time, both directions)</option>
-                <option value="conversational_unidirectional">Conversational Unidirectional (one direction)</option>
-                <option value="monologue">Monologue</option>
                 <option value="direct_ast">Direct AST</option>
+                <option value="cascaded_s2t">Cascaded S2T</option>
+                <option value="conversational_bidirectional">Conversational Bidirectional</option>
+                <option value="cross_lingual_summarization">Cross-Lingual Summarization</option>
               </select>
             </div>
           </div>
@@ -2948,9 +2965,10 @@
               <label>Asset Size Category</label>
               <select id="m_asset_size">
                 <option value="">--</option>
-                <option value="short">Short (&lt;30s)</option>
-                <option value="medium">Medium (30s–5min)</option>
-                <option value="long">Long (&gt;5min)</option>
+                <option value="short_under_30s">Short (&lt;30s)</option>
+                <option value="medium_30s_to_5min">Medium (30s–5min)</option>
+                <option value="long_5min_to_30min">Long (5min–30min)</option>
+                <option value="very_long_over_30min">Very Long (&gt;30min)</option>
               </select>
             </div>
             <div class="meta-field">
@@ -2966,20 +2984,19 @@
               <label>Collection Environment</label>
               <select id="m_collection_env">
                 <option value="">--</option>
-                <option value="telephony_8khz">Telephony (8kHz)</option>
-                <option value="voip_16khz">VoIP (16kHz)</option>
-                <option value="studio">Studio</option>
-                <option value="field">Field</option>
+                <option value="telephony">Telephony (landline/mobile/911)</option>
+                <option value="wideband">Wideband (meeting rooms/broadcast)</option>
+                <option value="voip_web">VoIP/Web (Zoom-style)</option>
               </select>
             </div>
             <div class="meta-field">
               <label>Sample Rate</label>
               <select id="m_sample_rate">
                 <option value="">--</option>
-                <option value="8khz">8kHz</option>
-                <option value="16khz">16kHz</option>
-                <option value="44khz">44.1kHz</option>
-                <option value="48khz">48kHz</option>
+                <option value="8kHz">8kHz</option>
+                <option value="16kHz">16kHz</option>
+                <option value="44.1kHz">44.1kHz</option>
+                <option value="48kHz">48kHz</option>
               </select>
             </div>
             <div class="meta-field">
@@ -2989,41 +3006,87 @@
             </div>
           </div>
 
+          <!-- CROSS-LINGUAL SUMMARY -->
+          <div id="clsSummarySection" style="display:none;">
+            <div class="meta-section-title">
+              Cross-Lingual Summary
+              <span class="meta-section-note">(only used when Modality = Cross-Lingual Summarization)</span>
+            </div>
+            <div class="meta-grid">
+              <div class="meta-field col-span-3">
+                <label>Source-Language Summary</label>
+                <textarea id="m_summary_src" rows="3" placeholder="Summary of the full conversation, written in the source language…"></textarea>
+              </div>
+              <div class="meta-field">
+                <label>Source Summary Type</label>
+                <select id="m_summary_src_type">
+                  <option value="abstractive">Abstractive</option>
+                  <option value="extractive">Extractive</option>
+                </select>
+              </div>
+              <div class="meta-field col-span-2">
+                <label>Source Key Topics (comma-separated)</label>
+                <input type="text" id="m_summary_src_topics" placeholder="e.g. Portfolio performance, Concentration risk">
+              </div>
+              <div class="meta-field col-span-3">
+                <label>Target-Language Summary</label>
+                <textarea id="m_summary_tgt" rows="3" placeholder="Summary of the full conversation, written in the target language…"></textarea>
+              </div>
+              <div class="meta-field">
+                <label>Target Summary Type</label>
+                <select id="m_summary_tgt_type">
+                  <option value="abstractive">Abstractive</option>
+                  <option value="extractive">Extractive</option>
+                </select>
+              </div>
+              <div class="meta-field col-span-2">
+                <label>Target Key Topics (comma-separated)</label>
+                <input type="text" id="m_summary_tgt_topics" placeholder="e.g. portfolio performance, concentration risk">
+              </div>
+              <div class="meta-field col-span-3">
+                <label>Key Entities Preserved (comma-separated)</label>
+                <input type="text" id="m_summary_entities" placeholder="e.g. Wang, Chen, Alibaba, ETF">
+              </div>
+            </div>
+          </div>
+
           <!-- QUALITY METRICS -->
           <div class="meta-section-title">
             Quality Metrics
-            <span class="meta-section-note">(reviewer-entered, optional — leave blank for not-yet-scored)</span>
+            <span class="meta-section-note">Not scored in this workflow</span>
           </div>
           <div class="meta-grid">
             <div class="meta-field">
               <label>BLEU Score</label>
-              <input type="text" id="m_bleu" inputmode="decimal" placeholder="e.g. 82.4">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_bleu" inputmode="decimal" placeholder="N/A" disabled>
             </div>
             <div class="meta-field">
               <label>COMET Score</label>
-              <input type="text" id="m_comet" inputmode="decimal" placeholder="e.g. 0.87">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_comet" inputmode="decimal" placeholder="N/A" disabled>
             </div>
             <div class="meta-field">
               <label>TER Score</label>
-              <input type="text" id="m_ter" inputmode="decimal" placeholder="e.g. 12.3">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_ter" inputmode="decimal" placeholder="N/A" disabled>
             </div>
             <div class="meta-field">
               <label>Terminology Consistency Score</label>
-              <input type="text" id="m_term_consistency" inputmode="decimal" placeholder="">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_term_consistency" inputmode="decimal" placeholder="N/A" disabled>
             </div>
-            <div class="meta-field">
+            <div class="meta-field" id="qmCtxAccuracyField">
               <label>Context-Dependency Resolution Accuracy</label>
-              <input type="text" id="m_ctx_accuracy" inputmode="decimal" placeholder="">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_ctx_accuracy" inputmode="decimal" placeholder="N/A" disabled>
             </div>
-            <div class="meta-field">
+            <div class="meta-field" id="qmSpkAccuracyField">
               <label>Speaker Attribution Accuracy</label>
-              <input type="text" id="m_spk_accuracy" inputmode="decimal" placeholder="">
-              <span class="meta-err">Number only</span>
+              <input type="text" id="m_spk_accuracy" inputmode="decimal" placeholder="N/A" disabled>
+            </div>
+            <div class="meta-field" id="qmSummaryAdequacyField" style="display:none;">
+              <label>Summary Adequacy Score</label>
+              <input type="text" id="m_summary_adequacy" inputmode="decimal" placeholder="N/A" disabled>
+            </div>
+            <div class="meta-field" id="qmSummaryFluencyField" style="display:none;">
+              <label>Summary Fluency Score</label>
+              <input type="text" id="m_summary_fluency" inputmode="decimal" placeholder="N/A" disabled>
             </div>
           </div>
 
@@ -4082,7 +4145,8 @@
             meta.sourceLocale.toUpperCase() + ' → ' + meta.targetLocale.toUpperCase();
           document.getElementById('srcBadge').textContent = meta.sourceLocale.toUpperCase();
           document.getElementById('tgtBadge').textContent = meta.targetLocale.toUpperCase();
-          
+          if (typeof DR7 !== 'undefined' && DR7.syncSpeakerToolbar) DR7.syncSpeakerToolbar(meta.speakerLabel);
+
           if (typeof SegPanel !== 'undefined') SegPanel.render();
           if (typeof Waveform !== 'undefined') Waveform.draw();
         }
@@ -4162,6 +4226,7 @@
             speakerLabel: seg.speakerLabel, domain: seg.domain,
             modality: seg.modality, direction: seg.direction,
           });
+          if (typeof DR7 !== 'undefined' && DR7.syncSpeakerToolbar) DR7.syncSpeakerToolbar(seg.speakerLabel);
 
           document.getElementById('rb_cs').classList.remove('error');
           document.getElementById('rb_cd').classList.remove('error');
@@ -4457,11 +4522,12 @@
            
            group.innerHTML = '';
            const options = Array.from(select.options).map(o => o.value);
-           
+           this.speakerButtons = {};
+
            options.forEach((opt, idx) => {
                const color = CFG.COLORS[idx % CFG.COLORS.length];
                this.speakerColors[opt] = color;
-               
+
                const btn = document.createElement('button');
                btn.type = 'button';
                btn.className = 'wf-speaker-btn';
@@ -4469,13 +4535,14 @@
                btn.style.setProperty('--spk-color', color);
                btn.style.setProperty('--spk-bg', color + '15'); // 15% opacity hex
                btn.style.setProperty('--spk-border', color + '40');
-               
+
                btn.onclick = () => this.setSpeakerLabel(opt, btn);
-               
+
                if (idx === 0) {
                    this.activeSpeakerLabel = opt;
                    btn.classList.add('active');
                }
+               this.speakerButtons[opt] = btn;
                group.appendChild(btn);
            });
         },
@@ -4512,10 +4579,31 @@
            }
         },
         
+        syncSpeakerToolbar(label) {
+           document.querySelectorAll('.wf-speaker-btn').forEach(btn => btn.classList.remove('active'));
+           const btn = (this.speakerButtons && this.speakerButtons[label]) || null;
+           if (btn) btn.classList.add('active');
+        },
+
         setSpeakerLabel(label, btnEl) {
            this.activeSpeakerLabel = label;
-           document.querySelectorAll('.wf-speaker-btn').forEach(btn => btn.classList.remove('active'));
-           if (btnEl) btnEl.classList.add('active');
+           this.syncSpeakerToolbar(label);
+           if (btnEl) btnEl.classList.add('active'); // fallback in case label isn't a known option
+
+           // If a segment is currently selected, re-categorize it in place instead of
+           // only setting the default label for the next newly-drawn segment.
+           const activeId = Store.getActiveId();
+           if (!activeId) return;
+           const seg = Store.get(activeId);
+           if (!seg || seg.speakerLabel === label) return;
+
+           Store.update(activeId, { speakerLabel: label });
+           const sel = document.getElementById('meta_spk');
+           if (sel) sel.value = label;
+
+           if (typeof SegPanel !== 'undefined') SegPanel.render();
+           if (typeof Waveform !== 'undefined') Waveform.draw();
+           if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
         },
         
         filter: {
@@ -4924,7 +5012,7 @@
              const conv = md.convention || {};
              const tr = md.translation || {};
              const dc = md.domainConversation || {};
-             const qm = md.qualityMetrics || {};
+             const sm = md.summary || {};
              const modality = md.modality || '';
 
              const normLocale = (loc) => (loc || '').replace('-', '_');
@@ -4955,7 +5043,7 @@
              const complexityDistribution = { simple: 0, medium: 0, complex: 0, super_complex: 0 };
              let numCodeSwitches = 0;
 
-             const segments = Store.getAll().map(s => {
+             const segments = Store.getAll().map((s, segIdx) => {
                 const srcLoc = normLocale(s.sourceLocale);
                 const tgtLoc = normLocale(s.targetLocale);
                 const isSpeech = (s.primaryType || 'Speech') === 'Speech';
@@ -4984,18 +5072,22 @@
                    start: Number(s.startTime),
                    end: Number(s.endTime),
                    segmentId: s.id,
+                   segmentPositionInConversation: segIdx + 1,
+                   conversationId: dc.conversationId || '',
                    primaryType: s.primaryType || 'Speech',
                    loudnessLevel: s.loudnessLevel || 'Normal',
                    language: isSpeech ? srcLoc : null,
                    segmentLanguages: isSpeech ? segLangs : [srcLoc, tgtLoc].filter(Boolean),
                    speakerId: isSpeech ? (s.speakerLabel || '') : 'No-Speaker',
-                   translationDirection: isSpeech ? translationDirection : null,
+                   // Cross-Lingual Summarization has no per-segment translation direction.
+                   ...(isSummarization ? {} : { translationDirection: isSpeech ? translationDirection : null }),
                    hasCodeSwitch: hasCodeSwitch,
                    contextDependencyFlag: s.contextDependency === 'yes',
                    complexity: complexity,
                    transcriptionData: { content: isSpeech ? (s.sourceText || '') : '' }
                 };
 
+                // Cross-Lingual Summarization has no per-segment reference translation.
                 if (!isSummarization) {
                    const translationData = {
                       content: isSpeech ? (s.targetText || '') : '',
@@ -5007,8 +5099,10 @@
                 return seg;
              });
 
+             // The "No-Speaker" placeholder is only needed when a non-Speech segment actually exists.
+             const needsNoSpeaker = segments.some(seg => seg.primaryType !== 'Speech');
              const speakers = [
-                {
+                ...(needsNoSpeaker ? [{
                    speakerId: 'No-Speaker',
                    speaker_age: 'NA',
                    gender: 'NA',
@@ -5018,7 +5112,7 @@
                    speakerNativity: 'NA',
                    speakerNativitySource: 'Annotator',
                    languages: []
-                },
+                }] : []),
                 ...(md.speakers || []).map(sp => {
                    const roleMap = { agent: 'Agent', customer: 'Customer', translator: 'Translator', dispatcher: 'Dispatcher', participant: 'Participant' };
                    const genderMap = { male: 'Male', female: 'Female', other: 'Other' };
@@ -5027,7 +5121,7 @@
                    let spDirection;
                    if (spCodes.indexOf(langCode(srcPrimary)) !== -1) spDirection = langCode(srcPrimary) + '_to_' + langCode(tgtPrimary);
                    else if (spCodes.indexOf(langCode(tgtPrimary)) !== -1) spDirection = langCode(tgtPrimary) + '_to_' + langCode(srcPrimary);
-                   return {
+                   const spk = {
                       speakerId: sp.speakerId,
                       speaker_age: sp.ageBracket || 'NA',
                       gender: genderMap[sp.gender] || 'NA',
@@ -5036,9 +5130,12 @@
                       speakerRoleSource: 'Script',
                       speakerNativity: natMap[sp.nativity] || 'NA',
                       speakerNativitySource: 'Annotator',
-                      languages: csvToArr(sp.languages),
-                      translationDirection: spDirection || null
+                      languages: csvToArr(sp.languages)
                    };
+                   // Cross-Lingual Summarization speakers carry a role description instead of a per-speaker translation direction.
+                   if (isSummarization) spk.roleDescription = sp.roleDescription || '';
+                   else spk.translationDirection = spDirection || null;
+                   return spk;
                 })
              ];
 
@@ -5057,13 +5154,21 @@
              }
              translationInfo.terminologyGlossaryUsed = tr.terminologyGlossaryUsed || '';
              translationInfo.dualTranslated = tr.dualTranslated === 'yes';
-             translationInfo.qualityMetrics = {
-                bleuScore: numOrNull(qm.bleu),
-                cometScore: numOrNull(qm.comet),
-                terScore: numOrNull(qm.ter),
-                terminologyConsistencyScore: numOrNull(qm.terminologyConsistency),
-                contextDependencyResolutionAccuracy: numOrNull(qm.contextDependencyAccuracy),
-                speakerAttributionAccuracy: numOrNull(qm.speakerAttributionAccuracy)
+             // Scoring fields are kept null per client request until the scoring format is finalized.
+             translationInfo.qualityMetrics = isSummarization ? {
+                bleuScore: null,
+                cometScore: null,
+                terScore: null,
+                terminologyConsistencyScore: null,
+                summaryAdequacyScore: null,
+                summaryFluencyScore: null
+             } : {
+                bleuScore: null,
+                cometScore: null,
+                terScore: null,
+                terminologyConsistencyScore: null,
+                contextDependencyResolutionAccuracy: null,
+                speakerAttributionAccuracy: null
              };
 
              const taskStatus = {
@@ -5080,10 +5185,10 @@
                 otherLanguageInfluence: csvToArr(lv.crossInfluence)
              }));
              const languageInfo = {
-                spokenLanguages: [srcPrimary].filter(Boolean),
-                speakerDominantVarieties: speakerDominantVarieties
+                spokenLanguages: [srcPrimary].filter(Boolean)
              };
              if (isSummarization) languageInfo.targetSummaryLanguage = tgtPrimary;
+             languageInfo.speakerDominantVarieties = speakerDominantVarieties;
 
              const totalDurationSec = Store.getAll().reduce((mx, s) => Math.max(mx, Number(s.endTime) || 0), 0);
              const conversationMetadata = {
@@ -5112,19 +5217,50 @@
                 },
                 taskStatus: taskStatus,
                 translationInfo: translationInfo,
-                segments: segments,
-                speakers: speakers,
-                languages: [srcPrimary, tgtPrimary].filter(Boolean),
-                languageInfo: languageInfo,
-                domainInfo: {
-                   domainVersion: dc.domainVersion || '',
-                   domainList: {
-                      domain: dc.domain || '',
-                      topicList: csvToArr(dc.topicList)
-                   }
-                },
-                conversationMetadata: conversationMetadata
+                segments: segments
              };
+
+             if (isSummarization) {
+                const wordCount = (text) => (text || '').trim().split(/\s+/).filter(Boolean).length;
+                const srcSummaryText = sm.sourceLanguageSummary || '';
+                const tgtSummaryText = sm.targetLanguageSummary || '';
+                const srcWordCount = wordCount(srcSummaryText);
+                const tgtWordCount = wordCount(tgtSummaryText);
+                const totalTranscriptWords = Store.getAll().reduce((sum, s) => sum + wordCount(s.sourceText), 0);
+                value.summaryData = {
+                   sourceSummary: {
+                      language: srcPrimary,
+                      content: srcSummaryText,
+                      summaryType: sm.sourceSummaryType || 'abstractive',
+                      keyTopics: csvToArr(sm.sourceKeyTopics)
+                   },
+                   targetSummary: {
+                      language: tgtPrimary,
+                      content: tgtSummaryText,
+                      summaryType: sm.targetSummaryType || 'abstractive',
+                      keyTopics: csvToArr(sm.targetKeyTopics)
+                   },
+                   summaryMetadata: {
+                      sourceWordCount: srcWordCount,
+                      targetWordCount: tgtWordCount,
+                      compressionRatio: totalTranscriptWords > 0 ? Number((srcWordCount / totalTranscriptWords).toFixed(2)) : null,
+                      keyEntitiesPreserved: csvToArr(sm.keyEntitiesPreserved),
+                      financialTermsAccuracy: null
+                   }
+                };
+             }
+
+             value.speakers = speakers;
+             value.languages = [srcPrimary, tgtPrimary].filter(Boolean);
+             value.languageInfo = languageInfo;
+             value.domainInfo = {
+                domainVersion: dc.domainVersion || '',
+                domainList: {
+                   domain: dc.domain || '',
+                   topicList: csvToArr(dc.topicList)
+                }
+             };
+             value.conversationMetadata = conversationMetadata;
 
              return {
                 type: { name: 'SPEECH_TRANSLATION_EVALUATION', version: '1.0' },
@@ -5621,10 +5757,36 @@
             var tbl = document.getElementById('m_speakers_table');
             if (tbl && !tbl.children.length) this.addSpeaker();
           }
+          this.onModalityChange();
         },
 
         close: function () {
           document.getElementById('modalMetadata').classList.remove('active');
+        },
+
+        onModalityChange: function () {
+          var sel = document.getElementById('m_modality');
+          var sec = document.getElementById('clsSummarySection');
+          if (!sel || !sec) return;
+          var isCls = sel.value === 'cross_lingual_summarization';
+          sec.style.display = isCls ? '' : 'none';
+          ['m_summary_src', 'm_summary_tgt', 'm_summary_src_type', 'm_summary_src_topics',
+           'm_summary_tgt_type', 'm_summary_tgt_topics', 'm_summary_entities'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.disabled = !isCls;
+          });
+          var ctx = document.getElementById('qmCtxAccuracyField');
+          var spk = document.getElementById('qmSpkAccuracyField');
+          var adq = document.getElementById('qmSummaryAdequacyField');
+          var flu = document.getElementById('qmSummaryFluencyField');
+          if (ctx) ctx.style.display = isCls ? 'none' : '';
+          if (spk) spk.style.display = isCls ? 'none' : '';
+          if (adq) adq.style.display = isCls ? '' : 'none';
+          if (flu) flu.style.display = isCls ? '' : 'none';
+          document.querySelectorAll('#m_speakers_table .speaker-row').forEach(function (row) {
+            var rd = row.querySelector('.m_spk_role_desc_field');
+            if (rd) rd.style.display = isCls ? '' : 'none';
+          });
         },
 
         addSpeaker: function () {
@@ -5652,6 +5814,8 @@
               '<select class="m_spk_nativity"><option value="">--</option><option value="native">Native</option><option value="non_native">Non-native</option></select></div>' +
             '<div class="meta-field"><label>Languages (CSV)</label>' +
               '<input type="text" class="m_spk_langs" placeholder="e.g. es_US, en"></div>' +
+            '<div class="meta-field m_spk_role_desc_field" style="display:none;"><label>Role Description</label>' +
+              '<input type="text" class="m_spk_roledesc" placeholder="e.g. Relationship Manager"></div>' +
             '<button type="button" class="meta-row-del" title="Remove speaker" onclick="DR7.metadata.removeRow(this)">' +
               '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>' +
             '</button>';
@@ -5662,6 +5826,7 @@
             var v = age.value.replace(/[^\d\-]/g, '');
             if (v !== age.value) age.value = v;
           });
+          this.onModalityChange();
         },
 
         addLangVar: function () {
@@ -5697,7 +5862,8 @@
               gender:    row.querySelector('.m_spk_gender').value,
               ageBracket: row.querySelector('.m_spk_age').value.trim(),
               nativity:  row.querySelector('.m_spk_nativity').value,
-              languages: row.querySelector('.m_spk_langs').value.trim()
+              languages: row.querySelector('.m_spk_langs').value.trim(),
+              roleDescription: row.querySelector('.m_spk_roledesc').value.trim()
             });
           });
 
@@ -5743,7 +5909,18 @@
               ter: val('m_ter'),
               terminologyConsistency: val('m_term_consistency'),
               contextDependencyAccuracy: val('m_ctx_accuracy'),
-              speakerAttributionAccuracy: val('m_spk_accuracy')
+              speakerAttributionAccuracy: val('m_spk_accuracy'),
+              summaryAdequacy: val('m_summary_adequacy'),
+              summaryFluency: val('m_summary_fluency')
+            },
+            summary: {
+              sourceLanguageSummary: val('m_summary_src'),
+              sourceSummaryType: val('m_summary_src_type'),
+              sourceKeyTopics: val('m_summary_src_topics'),
+              targetLanguageSummary: val('m_summary_tgt'),
+              targetSummaryType: val('m_summary_tgt_type'),
+              targetKeyTopics: val('m_summary_tgt_topics'),
+              keyEntitiesPreserved: val('m_summary_entities')
             },
             speakers: speakers,
             languageVarieties: langVarieties
@@ -5806,11 +5983,19 @@
           set('m_bleu', q.bleu); set('m_comet', q.comet); set('m_ter', q.ter);
           set('m_term_consistency', q.terminologyConsistency);
           set('m_ctx_accuracy', q.contextDependencyAccuracy); set('m_spk_accuracy', q.speakerAttributionAccuracy);
+          set('m_summary_adequacy', q.summaryAdequacy); set('m_summary_fluency', q.summaryFluency);
+          var sm = data.summary || {};
+          set('m_summary_src', sm.sourceLanguageSummary); set('m_summary_src_type', sm.sourceSummaryType);
+          set('m_summary_src_topics', sm.sourceKeyTopics);
+          set('m_summary_tgt', sm.targetLanguageSummary); set('m_summary_tgt_type', sm.targetSummaryType);
+          set('m_summary_tgt_topics', sm.targetKeyTopics);
+          set('m_summary_entities', sm.keyEntitiesPreserved);
           var st = document.getElementById('m_speakers_table'); if (st) st.innerHTML = '';
           (data.speakers || []).forEach(function (sp) {
             DR7.metadata.addSpeaker();
             var row = document.querySelector('#m_speakers_table .speaker-row:last-child');
             row.querySelector('.m_spk_id').value = sp.speakerId || '';
+            row.querySelector('.m_spk_roledesc').value = sp.roleDescription || '';
             row.querySelector('.m_spk_role').value = sp.role || '';
             row.querySelector('.m_spk_gender').value = sp.gender || '';
             row.querySelector('.m_spk_age').value = sp.ageBracket || '';
