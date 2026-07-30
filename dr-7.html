@@ -2070,7 +2070,7 @@
     <input type="hidden" name="speaker_label" id="out_spk_label">
     <input type="hidden" name="domain" id="out_domain">
     <input type="hidden" name="modality" id="out_modality">
-    <input type="hidden" name="conversation_metadata" id="metadata_output" value="">
+    <input type="hidden" name="conversation_metadata" id="metadata_output" value="{{ task.input.conversation_metadata | default: '' | escape }}">
     <input type="hidden" name="direction" id="out_direction">
 
     <!-- ═══ HEADER ═══════════════════════════════════════════ -->
@@ -4857,7 +4857,17 @@
         async init() {
           // Restore saved annotations
           Store.init(CFG.savedJson);
-          
+
+          // Restore saved conversation metadata (Add Metadata modal), if this task was
+          // previously saved/submitted — mirrors annotations_output's restore-on-load.
+          const metaEl = document.getElementById('metadata_output');
+          if (metaEl && metaEl.value) {
+            try {
+              const savedMeta = JSON.parse(metaEl.value);
+              if (savedMeta && typeof savedMeta === 'object') window.DR7._conversationMetadata = savedMeta;
+            } catch (e) { /* ignore invalid/legacy metadata payload */ }
+          }
+
           if (document.getElementById('fhConvId')) document.getElementById('fhConvId').textContent = CFG.conversationId;
 
           // Waveform + drawer
@@ -5324,69 +5334,139 @@
              const reader = new FileReader();
              reader.onload = (ev) => {
                 try {
-                   const data = JSON.parse(ev.target.result);
+                   const raw = JSON.parse(ev.target.result);
+                   // Accept both the actual export shape ({type, value:{...}}) and a bare value object.
+                   const data = (raw && raw.value && typeof raw.value === 'object') ? raw.value : raw;
                    if (!Array.isArray(data.segments)) {
-                      if(typeof toast !== 'undefined') toast('Invalid JSON file — missing segments array', 'error');
+                      if (typeof toast !== 'undefined') toast('Invalid JSON file — missing segments array', 'error');
                       return;
                    }
-                   
-                   // Helper: convert "MM:SS", "MM:SS.ss" or plain number back to numeric seconds
-                   const parseMMSS = (v) => {
-                      if (typeof v === 'number') return +v.toFixed(4);
-                      if (typeof v === 'string' && v.includes(':')) {
-                         const [m, s] = v.split(':');
-                         return +(parseInt(m, 10) * 60 + parseFloat(s || 0)).toFixed(4);
-                      }
-                      return +(parseFloat(v) || 0).toFixed(4);
-                   };
 
-                   // Reconstruct internal store state
-                   const items = [];
-                   data.segments.forEach(s => {
-                      items.push({
-                         id: 'S' + Math.random().toString(36).substr(2, 9),
-                         conversationId: s.conversationId || CFG.conversationId,
-                         segmentNumber: parseInt(s.segmentId, 10),
-                         turnNumber: parseInt(s.turnNumber, 10),
-                         startTime: parseMMSS(s.startTime),
-                         endTime: parseMMSS(s.endTime),
-                         sourceLocale: s.sourceLocale,
-                         targetLocale: s.targetLocale,
-                         speakerLabel: s.speakerLabel,
-                         sourceText: s.sourceTranscription,
-                         targetText: s.targetTranslation,
-                         direction: s.translationDirection,
-                         codeSwitch: s.codeSwitchPresent ? 'yes' : 'no',
-                         contextDependency: s.contextDependency ? 'yes' : 'no',
-                         color: (typeof DR7 !== 'undefined' && DR7.speakerColors && DR7.speakerColors[s.speakerLabel]) ? DR7.speakerColors[s.speakerLabel] : CFG.COLORS[0],
-                         domain: s.domain || CFG.domain,
-                         modality: s.modality || CFG.modality,
+                   const ti = data.translationInfo || {};
+                   const cm = data.conversationMetadata || {};
+                   const di = data.domainInfo || {};
+                   const domainList = di.domainList || {};
+                   const langCode = (loc) => (loc || '').split(/[-_]/)[0];
+                   const srcPrimary = ti.sourcePrimaryLocale || '';
+                   const tgtPrimary = ti.targetPrimaryLocale || '';
+
+                   // Reconstruct internal store items from the exported segment shape.
+                   const items = data.segments.map(s => {
+                      const isSpeech = (s.primaryType || 'Speech') === 'Speech';
+                      let sourceLocale = s.language || srcPrimary;
+                      let targetLocale = (sourceLocale === tgtPrimary) ? srcPrimary : tgtPrimary;
+                      let direction = 'Source to Target';
+                      if (s.translationDirection) {
+                         const reversed = langCode(targetLocale) + '_to_' + langCode(sourceLocale);
+                         if (s.translationDirection === reversed) direction = 'Target to Source';
+                      }
+                      return {
+                         id: 'seg_' + Math.random().toString(36).slice(2, 11),
+                         conversationId: s.conversationId || cm.conversationId || CFG.conversationId,
+                         startTime: +(Number(s.start) || 0).toFixed(4),
+                         endTime: +(Number(s.end) || 0).toFixed(4),
+                         sourceLocale: sourceLocale,
+                         targetLocale: targetLocale,
+                         speakerLabel: (isSpeech ? (s.speakerId || '') : ''),
+                         sourceText: (s.transcriptionData && s.transcriptionData.content) || '',
+                         targetText: (s.translationData && s.translationData.content) || '',
+                         translatorNotes: (s.translationData && s.translationData.translatorNotes) || '',
+                         direction: direction,
+                         codeSwitch: s.hasCodeSwitch ? 'yes' : 'no',
+                         contextDependency: s.contextDependencyFlag ? 'yes' : 'no',
+                         primaryType: s.primaryType || 'Speech',
+                         loudnessLevel: s.loudnessLevel || 'Normal',
+                         complexity: s.complexity || '',
+                         domain: domainList.domain || CFG.domain,
+                         modality: ti.modality || CFG.modality,
                          isHidden: false
-                      });
+                      };
                    });
-                   
+
                    // Clear and reset Store
                    Store.setActive(null);
                    Store.init(JSON.stringify(items));
                    Store.serialize();
-                   
-                   // Update Global Meta if available
-                   if (items.length > 0) {
-                       if (document.getElementById('meta_domain')) document.getElementById('meta_domain').value = items[items.length-1].domain;
-                       if (document.getElementById('meta_modality')) document.getElementById('meta_modality').value = items[items.length-1].modality;
-                   }
-                   
+
+                   // Reconstruct the Add Metadata modal's saved data so it round-trips correctly.
+                   const roleMapRev = { Agent: 'agent', Customer: 'customer', Translator: 'translator', Dispatcher: 'dispatcher', Participant: 'participant' };
+                   const genderMapRev = { Male: 'male', Female: 'female', Other: 'other' };
+                   const natMapRev = { Native: 'native', 'Non-Native': 'non_native' };
+                   const profMapRev = { Native: 'native', Professional: 'professional', Fluent: 'fluent', Intermediate: 'intermediate' };
+                   const ai = data.annotatorInfo || {};
+                   const ci = data.conventionInfo || {};
+                   const li = data.languageInfo || {};
+                   const sd = data.summaryData || null;
+
+                   const metadata = {
+                      modality: ti.modality || '',
+                      convention: {
+                         masterConventionName: ci.masterConventionName || '',
+                         customAddendum: ci.customAddendum || '',
+                         translatorId: ai.translatorId || '',
+                         translatorNativeLanguage: ai.translatorNativeLanguage || '',
+                         translatorProficiency: profMapRev[ai.translatorProficiency] || ai.translatorProficiency || '',
+                         catToolUsed: ai.catToolUsed || ''
+                      },
+                      translation: {
+                         sourcePrimaryLocale: srcPrimary,
+                         targetPrimaryLocale: tgtPrimary,
+                         terminologyGlossaryUsed: ti.terminologyGlossaryUsed || '',
+                         dualTranslated: ti.dualTranslated ? 'yes' : 'no'
+                      },
+                      domainConversation: {
+                         domain: domainList.domain || '',
+                         topicList: (domainList.topicList || []).join(', '),
+                         domainVersion: di.domainVersion || '',
+                         conversationId: cm.conversationId || '',
+                         assetSizeCategory: cm.assetSizeCategory || '',
+                         dataSourceType: cm.dataSourceType || '',
+                         collectionEnvironment: cm.collectionEnvironment || '',
+                         sampleRate: cm.sampleRate || '',
+                         codeSwitches: cm.numCodeSwitches != null ? String(cm.numCodeSwitches) : ''
+                      },
+                      qualityMetrics: { bleu: '', comet: '', ter: '', terminologyConsistency: '', contextDependencyAccuracy: '', speakerAttributionAccuracy: '', summaryAdequacy: '', summaryFluency: '' },
+                      summary: sd ? {
+                         sourceLanguageSummary: (sd.sourceSummary && sd.sourceSummary.content) || '',
+                         sourceSummaryType: (sd.sourceSummary && sd.sourceSummary.summaryType) || 'abstractive',
+                         sourceKeyTopics: (sd.sourceSummary && sd.sourceSummary.keyTopics || []).join(', '),
+                         targetLanguageSummary: (sd.targetSummary && sd.targetSummary.content) || '',
+                         targetSummaryType: (sd.targetSummary && sd.targetSummary.summaryType) || 'abstractive',
+                         targetKeyTopics: (sd.targetSummary && sd.targetSummary.keyTopics || []).join(', '),
+                         keyEntitiesPreserved: (sd.summaryMetadata && sd.summaryMetadata.keyEntitiesPreserved || []).join(', ')
+                      } : {},
+                      speakers: (data.speakers || []).filter(sp => sp.speakerId !== 'No-Speaker').map(sp => ({
+                         speakerId: sp.speakerId || '',
+                         role: roleMapRev[sp.speakerRole] || '',
+                         gender: genderMapRev[sp.gender] || '',
+                         ageBracket: (sp.speaker_age && sp.speaker_age !== 'NA') ? sp.speaker_age : '',
+                         nativity: natMapRev[sp.speakerNativity] || '',
+                         languages: (sp.languages || []).join(', '),
+                         roleDescription: sp.roleDescription || ''
+                      })),
+                      languageVarieties: (li.speakerDominantVarieties || []).map(v => ({
+                         locale: v.languageLocale || '',
+                         variety: (v.languageVariety || []).join(', '),
+                         crossInfluence: (v.otherLanguageInfluence || []).join(', ')
+                      }))
+                   };
+
+                   window.DR7._conversationMetadata = metadata;
+                   const metaOut = document.getElementById('metadata_output');
+                   if (metaOut) metaOut.value = JSON.stringify(metadata);
+                   if (cm.conversationId) CFG.conversationId = cm.conversationId;
+
                    // Force full UI re-render
-                   if(typeof Waveform !== 'undefined') Waveform.draw();
-                   if(typeof SegPanel !== 'undefined') SegPanel.render();
-                   if(typeof ReviewPanel !== 'undefined') ReviewPanel.render();
-                   if(typeof Form !== 'undefined') Form.load(null); // clears details panel
-                   
-                   if(typeof toast !== 'undefined') toast(`Import complete — ${items.length} segments restored`, 'success');
-                   
+                   if (typeof Waveform !== 'undefined') Waveform.draw();
+                   if (typeof SegPanel !== 'undefined') SegPanel.render();
+                   if (typeof ReviewPanel !== 'undefined') ReviewPanel.render();
+                   if (typeof Form !== 'undefined') Form.load(null); // clears details panel
+
+                   if (typeof toast !== 'undefined') toast(`Import complete — ${items.length} segments restored`, 'success');
+
                 } catch (err) {
                    console.error(err);
-                   if(typeof toast !== 'undefined') toast('Invalid JSON file — could not import', 'error');
+                   if (typeof toast !== 'undefined') toast('Invalid JSON file — could not import', 'error');
                 }
                 // Reset file input so same file can be loaded again if needed
                 e.target.value = '';
